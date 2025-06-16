@@ -38,7 +38,7 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
     e.preventDefault();
     if (!validateForm()) return;
     try {
-      const res = await axios.post('http://localhost:5000/login', formData);
+      const res = await axios.post('https://backend-api-corrected-1.onrender.com/auth/login', formData);
       const { token, role, name } = res.data;
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);

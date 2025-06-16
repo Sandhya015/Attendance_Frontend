@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // 1. Create an axios instance with baseURL
 const API = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: 'https://backend-api-corrected-1.onrender.com',
 });
 
 // 2. Automatically attach JWT token from localStorage
@@ -24,14 +24,14 @@ export const getLeaveHistory = () => API.get('/leave/my-requests');
 export const getEmployeeSummary = () => API.get('/employee/summary');
 
 export const getProfile = () =>
-  axios.get('http://localhost:5000/employee/profile', {
+  axios.get('https://backend-api-corrected-1.onrender.com/employee/profile', {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
   });
 
 export const updateEmployeeProfile = (updatedData) =>
-  axios.put('http://localhost:5000/employee/update-profile', updatedData, {
+  axios.put('https://backend-api-corrected-1.onrender.com/employee/update-profile', updatedData, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`,
     },

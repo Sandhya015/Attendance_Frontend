@@ -447,10 +447,10 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
           <input type="text" name="department" defaultValue={employee.department} placeholder="Enter your department" required />
         </label>
         <label>Date of Joining
-          <input type="date" name="doj" defaultValue={employee.doj} placeholder="Select your joining date" required />
+          <input type="date" name="doj" defaultValue={employee.join_date} placeholder="Select your joining date" required />
         </label>
         <label>Blood Group
-          <input type="text" name="bloodGroup" defaultValue={employee.bloodGroup} placeholder="E.g., O+, A-, B+" required />
+          <input type="text" name="bloodGroup" defaultValue={employee.blood_group} placeholder="E.g., O+, A-, B+" required />
         </label>
         <div className="modal-buttons">
           <button type="submit">Update</button>
@@ -507,7 +507,7 @@ const EmployeeDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
-  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', doj: '', bloodGroup: '' });
+  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', blood_group: '' });
   const [editMode, setEditMode] = useState(false);
 
   const navigate = useNavigate();
@@ -537,8 +537,8 @@ const EmployeeDashboard = () => {
       email: form.email.value,
       position: form.position.value,
       department: form.department.value,
-      doj: form.doj.value,
-      bloodGroup: form.bloodGroup.value,
+      join_date: form.join_date.value,
+      blood_group: form.blood_group.value,
     };
     try {
       await updateEmployeeProfile(updated);

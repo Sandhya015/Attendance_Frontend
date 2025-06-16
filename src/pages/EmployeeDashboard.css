@@ -1,0 +1,575 @@
+/* FULL UPDATED EmployeeDashboard.css WITH ICONS, NAVBAR SPACING, AND TRANSPARENT BUTTONS */
+
+body, html {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f5f7;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 300px;
+  background: #1f2937;
+  color: white;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+.sidebar ul {
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar ul li {
+  list-style: none;
+  padding: 14px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  background: transparent;
+  letter-spacing: 1px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar ul li.active,
+.sidebar ul li:hover {
+  background: #6a7999;
+  width: 180px;
+}
+/* SIDEBAR ICON ALIGNMENT */
+.sidebar ul li svg {
+  font-size: 16px;
+  min-width: 20px;
+}
+
+/* MATCH CARD HEIGHTS IN SUMMARY */
+.summary-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summary-cards .card {
+  min-height: 120px;
+  height: 160px;           /* Enforce all summary cards to have the same height */
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-navbar {
+  height: 100px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.dashboard-navbar .tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* .dashboard-navbar .tabs button {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+} */
+
+.dashboard-navbar .tabs button.active,
+.dashboard-navbar .tabs button:hover {
+  background-color: #8991a1;
+  color: #fff;
+  border-color: transparent;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  min-height: calc(100vh - 100px);
+}
+
+.summary-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: white;
+  padding: 1.2rem;
+  border-radius: 12px;
+  flex: 1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.tabs {
+  margin-bottom: 1.5rem;
+}
+
+.tabs button {
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+.tabs button.active,
+.tabs button:hover {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-group button {
+  background: transparent;
+  border: 1px solid #1976d2;
+  color: #1976d2;
+  padding: 0.4rem 0.8rem;
+  margin-right: 1rem;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-group button:hover {
+  background: #1976d2;
+  color: white;
+}
+
+.small-chart canvas {
+  max-width: 500px;
+  margin: auto;
+}
+
+h1 {
+  margin-top: 0.2rem;
+  font-size: 1.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.profile-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+  padding: 2rem;
+  position: relative;
+}
+
+.profile-avatar-large {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  background: #ccc;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-view p {
+  font-size: 16px;
+  margin: 0.25rem 0;
+  width: 100%;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.profile-form label {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 0.25rem;
+}
+
+.profile-form input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.edit-button-container {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.edit-btn {
+  padding: 8px 20px;
+  border: none;
+  background-color: #1e40af;
+  color: white;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.edit-btn:hover {
+  background-color: #2563eb;
+}
+
+.leave-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 500px;
+  width: 100%;
+  margin-top: 1rem;
+ 
+}
+
+.leave-form label {
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  
+}
+
+.leave-form input[type="date"] {
+  height: 36px;
+  padding: 0 0.6rem;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 250px;
+}
+
+.leave-form textarea {
+  min-height: 120px;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.apply-btn {
+  background-color: #1e88e5;
+  border: none;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  align-self: flex-start;
+  min-width: fit-content;
+}
+
+.apply-btn:hover {
+  background-color: #1565c0;
+}
+
+.dashboard-profile-chart {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.dashboard-profile-chart {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  
+}
+
+.profile-summary {
+  flex: 1;
+  min-width: 400px;
+  max-width: 690px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-summary h4 {
+  margin-top: 0.5rem;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.profile-summary p {
+  font-size: 14px;
+  color: #444;
+  margin: 2px 0;
+}
+
+.checkin-info {
+  margin-top: 1rem;
+  font-size: 14px;
+}
+
+.small-chart {
+  flex: 1;
+  min-width: 300px;
+  max-width: 690px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.close-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #888; }
+.attendance-form-modal { background: #f7f7f7; border-radius: 7px; padding: 1rem 1.5rem; margin: 1rem 0; box-shadow: 0 1px 5px rgba(0,0,0,0.10); }
+
+/* --- NEW/UPDATED STYLES FOR RECENT FEATURES (DO NOT CHANGE EXISTING LAYOUT OR SIZES) --- */
+
+/* NAVBAR LOGO TOP RIGHT (already added in markup) */
+.navbar-logo-top-right {
+  height: 40px;
+  width: auto;
+  margin-left: auto;
+  margin-right: 12px;
+  display: block;
+}
+
+/* --- CALENDAR INPUT (Check-in/Leave) --- */
+.calendar-input {
+  /* Make the calendar look more like your screenshot (image1) */
+  height: 36px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 0 0.6rem;
+  background: #fff url('data:image/svg+xml;utf8,<svg fill="gray" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M7 10h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm0 4h2v2h-2zM7 14h2v2H7z" opacity=".3"/><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm0-13H5V6h14v1zm-7 6h2v2h-2zm4 0h2v2h-2zm-8 0h2v2H7zm0 4h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>') no-repeat right 12px center/18px 18px;
+}
+
+/* --- LEAVE TAB GRID (side by side) --- */
+.leave-tab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+}
+
+/* Responsive fallback: stack on smaller screens */
+@media (max-width: 900px) {
+  .leave-tab-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Each card in the leave tab grid */
+.leave-form-card, .leave-history-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.09);
+  padding: 1.5rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- PAGINATION CAPSULE BUTTONS --- */
+.pagination.capsule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.capsule-btn {
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1px solid #1e88e5;
+  background: #fff;
+  color: #1e88e5;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.capsule-btn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.capsule-btn:not(:disabled):hover {
+  background: #1e88e5;
+  color: #fff;
+}
+
+.capsule-page {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: #f3f5fa;
+  color: #222;
+}
+
+/* --- CLOSE (X) BUTTON FOR EDIT MODAL --- */
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #888;
+}
+
+/* --- ATTENDANCE MODAL (Check-in/Check-out) --- */
+.attendance-form-modal {
+  background: #f7f7f7;
+  border-radius: 7px;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.10);
+  width: 340px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  position: relative;
+}
+
+.attendance-form-modal label {
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Hamburger Button */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #1f2937;
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 260px;
+    background: #1f2937;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .dashboard-navbar {
+    padding-left: 1rem;
+    justify-content: space-between;
+  }
+
+  .hamburger-btn {
+    display: block;
+  }
+
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .main-area {
+    margin-left: 0;
+  }
+}
+.sidebar {
+  z-index: 1001;
+}
+
+.sidebar-overlay {
+  z-index: 1000;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 998;
+}

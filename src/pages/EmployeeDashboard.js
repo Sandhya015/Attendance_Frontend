@@ -406,8 +406,8 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
         <p><strong>Email:</strong> {employee.email}</p>
         <p><strong>Position:</strong> {employee.position}</p>
         <p><strong>Department:</strong> {employee.department}</p>
-        <p><strong>Blood Group:</strong> {employee.bloodGroup}</p>
-        <p><strong>Date of Joining:</strong> {employee.doj}</p>
+        <p><strong>Blood Group:</strong> {employee.blood_group}</p>
+        <p><strong>Date of Joining:</strong> {employee.join_date}</p>
         <div className="edit-button-container">
           <button className="edit-btn" onClick={() => setEditMode(true)}>Edit Profile</button>
         </div>

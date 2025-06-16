@@ -23,7 +23,7 @@ const ForgotPasswordPage = ({ openLoginPopup }) => {
     }
 
     try {
-      await axios.post('http://localhost:5000/forgot-password', {
+      await axios.post('https://backend-api-corrected-1.onrender.com/auth/forgot-password', {
         email: formData.email,
         new_password: formData.new_password,
       });

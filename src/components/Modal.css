@@ -1,0 +1,113 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    backdrop-filter: blur(3px);
+  }
+  
+  .modal-content {
+    background: #fff;
+    padding: 25px 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 0.3s ease-out;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .modal-content h2 {
+    margin-top: 0;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .profile-details p,
+  .settings-form label {
+    margin-bottom: 10px;
+    font-size: 15px;
+    color: #444;
+  }
+  
+  .settings-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .settings-form label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+  }
+  
+  .settings-form input {
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+  }
+  
+  .settings-form input:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .modal-buttons button {
+    padding: 8px 14px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .modal-buttons button.save-btn {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .modal-buttons button.save-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  .modal-buttons button.cancel-btn {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+  
+  .modal-buttons button.cancel-btn:hover {
+    background-color: #e0e0e0;
+  }

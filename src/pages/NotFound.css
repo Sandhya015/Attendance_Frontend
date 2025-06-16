@@ -1,0 +1,57 @@
+.notfound-container {
+    height: 100vh;
+    background: linear-gradient(to right, #e0f7fa, #cbd5e1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .notfound-box {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .logo {
+    height: 60px;
+    margin-bottom: 20px;
+  }
+  
+  .notfound-box h1 {
+    font-size: 72px;
+    font-weight: bold;
+    margin: 0;
+    color: #1e3a8a;
+  }
+  
+  .notfound-box h2 {
+    font-size: 24px;
+    margin-top: 10px;
+    color: #374151;
+  }
+  
+  .notfound-box p {
+    margin: 15px 0;
+    color: #6b7280;
+  }
+  
+  .notfound-box button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .notfound-box button:hover {
+    background-color: #1e40af;
+  }
+  

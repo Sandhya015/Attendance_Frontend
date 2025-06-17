@@ -43,7 +43,7 @@ const SummaryCards = ({ attendanceStats, leaveRequests, pendingCheckins }) => (
   </div>
 );
 
-const bloodGroups = [
+const bloodGroup = [
   "", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
 ];
 

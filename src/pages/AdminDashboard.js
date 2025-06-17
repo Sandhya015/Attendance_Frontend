@@ -44,7 +44,7 @@ const SummaryCards = ({ attendanceStats, leaveRequests, pendingCheckins }) => (
 );
 
 const bloodGroup = [
-  "", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
+  "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
 ];
 
 const AdminDashboard = () => {

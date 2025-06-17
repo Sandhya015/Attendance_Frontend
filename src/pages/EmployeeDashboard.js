@@ -585,7 +585,7 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
           <input type="date" name="doj" defaultValue={employee.join_date} placeholder="Select your joining date" required />
         </label>
         <label>Blood Group
-          <input type="text" name="bloodGroup" defaultValue={employee.blood_group} placeholder="E.g., O+, A-, B+" required />
+          <input type="text" name="bloodGroup" defaultValue={employee.bloodGroup} placeholder="E.g., O+, A-, B+" required />
         </label>
         <div className="modal-buttons">
           <button type="submit">Update</button>
@@ -639,7 +639,7 @@ const HistoryTab = () => {
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
-  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', blood_group: '' });
+  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
   const [editMode, setEditMode] = useState(false);
 
   const navigate = useNavigate();
@@ -666,7 +666,7 @@ const EmployeeDashboard = () => {
       position: form.position.value,
       department: form.department.value,
       join_date: form.join_date.value,
-      blood_group: form.blood_group.value,
+      bloodGroup: form.bloodGroup.value,
     };
     try {
       await updateEmployeeProfile(updated);

@@ -122,7 +122,7 @@ const DashboardTab = ({ employee }) => {
   );
 };
 
-const AttendanceTab = ({ doj }) => {
+const AttendanceTab = ({ join_date }) => {
   const [checkInDate, setCheckInDate] = useState('');
   const [checkInHour, setCheckInHour] = useState('');
   const [checkInMinute, setCheckInMinute] = useState('');
@@ -197,7 +197,7 @@ const AttendanceTab = ({ doj }) => {
   }, []);
 
   // --- Logic for min/max dates ---
-  const minDate = doj || '';
+  const minDate = join_date || '';
   const checkInMinDate = minDate;
   const checkInMaxDate = todayStr;
   const checkOutMinDate = minDate;
@@ -620,7 +620,7 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
         <p><strong>Position:</strong> {employee.position}</p>
         <p><strong>Department:</strong> {employee.department}</p>
         <p><strong>Blood Group:</strong> {employee.bloodGroup}</p>
-        <p><strong>Date of Joining:</strong> {employee.doj}</p>
+        <p><strong>Date of Joining:</strong> {employee.join_date}</p>
         <div className="edit-button-container">
           <button className="edit-btn" onClick={() => setEditMode(true)}>Edit Profile</button>
         </div>
@@ -732,7 +732,7 @@ const HistoryTab = () => {
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
-  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', doj: '', bloodGroup: '' });
+  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
   const [editMode, setEditMode] = useState(false);
 
   const navigate = useNavigate();
@@ -784,7 +784,7 @@ const EmployeeDashboard = () => {
           <SummaryCards summary={summary} leavesLeft={leavesLeft} nextHoliday={nextHoliday} employee={employee} />
           {activeTab === 'dashboard' && <DashboardTab employee={employee} />}
           {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} />}
-          {activeTab === 'attendance' && <AttendanceTab doj={employee.doj} />}
+          {activeTab === 'attendance' && <AttendanceTab join_date={employee.join_date} />}
           {activeTab === 'history' && <HistoryTab />}
           {activeTab === 'leave' && <LeaveTab />}
           {activeTab === 'holiday' && <HolidayTab />}

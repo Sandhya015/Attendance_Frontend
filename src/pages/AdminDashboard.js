@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { FaChartBar, FaClock, FaUserPlus, FaCalendarAlt, FaFileUpload, FaSignOutAlt } from 'react-icons/fa';
-import logo from '../assets/logooo.jpg'; // Make sure this path is correct or update accordingly
+// import logo from '../assets/logooo.jpg'; // Make sure this path is correct or update accordingly
 
 const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
   <aside className="sidebar">
@@ -28,9 +28,9 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
 const TopNavbar = () => (
   <header className="dashboard-navbar">
     <div className="navbar-title">Admin Dashboard</div>
-    <div style={{ position: "absolute", right: 24, top: 26 }}>
+    {/* <div style={{ position: "absolute", right: 24, top: 30 }}>
       <img src={logo} alt="Logo" className="navbar-logo-top-right" style={{ height: 40, width: 'auto', marginRight: 16 }} />
-    </div>
+    </div> */}
   </header>
 );
 
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
 
   const fetchTotalEmployees = useCallback(async () => {
     try {
-      const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/total-employees', {
+      const res = await fetch('http://localhost:5000/admin/total-employees', {
         method: 'GET',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
       if (filters.fromDate.trim() !== '') queryParts.push(`fromDate=${encodeURIComponent(filters.fromDate.trim())}`);
       if (filters.toDate.trim() !== '') queryParts.push(`toDate=${encodeURIComponent(filters.toDate.trim())}`);
       const query = queryParts.length ? `?${queryParts.join('&')}` : '';
-      const res = await fetch(`https://backend-api-corrected-1.onrender.com/admin/export${query}`, {
+      const res = await fetch(`http://localhost:5000/admin/export${query}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
@@ -155,7 +155,7 @@ const AdminDashboard = () => {
     const formData = new FormData();
     formData.append('file', fileInputRef.current.files[0]);
     try {
-      await fetch('https://backend-api-corrected-1.onrender.com/admin/upload-attendance', {
+      await fetch('http://localhost:5000/admin/upload-attendance', {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData

@@ -1,0 +1,14 @@
+# Ignore dependencies
+node_modules/
+
+# Ignore cache/build artifacts
+.cache/
+dist/
+build/
+
+# Ignore system files
+.DS_Store
+.env
+node_modules/
+node_modules/
+.cache/

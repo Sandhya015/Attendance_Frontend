@@ -426,7 +426,7 @@ const AdminDashboard = () => {
                   style={{ marginBottom: 15, padding: "8px", minWidth: 120 }}
                 >
                   <option value="">Select Blood Group</option>
-                  {bloodGroups.filter(bg => bg !== "").map(bg => (
+                  {bloodGroup.filter(bg => bg !== "").map(bg => (
                     <option key={bg} value={bg}>{bg}</option>
                   ))}
                 </select>

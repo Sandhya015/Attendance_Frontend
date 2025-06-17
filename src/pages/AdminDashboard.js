@@ -41,8 +41,8 @@ const SummaryCards = ({ attendanceStats, leaveRequests, pendingCheckins }) => (
   </div>
 );
 
-const bloodGroups = [
-  "", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
+const bloodGroup = [
+  "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
 ];
 
 const AdminDashboard = () => {
@@ -424,7 +424,7 @@ const AdminDashboard = () => {
                   className="admin-blood-dropdown"
                 >
                   <option value="">Select Blood Group</option>
-                  {bloodGroups.filter(bg => bg !== "").map(bg => (
+                  {bloodGroup.filter(bg => bg !== "").map(bg => (
                     <option key={bg} value={bg}>{bg}</option>
                   ))}
                 </select>

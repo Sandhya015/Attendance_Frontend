@@ -84,7 +84,7 @@ const AdminDashboard = () => {
 
   const fetchTotalEmployees = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/admin/total-employees', {
+      const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/total-employees', {
         method: 'GET',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
       if (filters.fromDate.trim() !== '') queryParts.push(`fromDate=${encodeURIComponent(filters.fromDate.trim())}`);
       if (filters.toDate.trim() !== '') queryParts.push(`toDate=${encodeURIComponent(filters.toDate.trim())}`);
       const query = queryParts.length ? `?${queryParts.join('&')}` : '';
-      const res = await fetch(`http://localhost:5000/admin/export${query}`, {
+      const res = await fetch(`https://backend-api-corrected-1.onrender.com/admin/export${query}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
@@ -155,7 +155,7 @@ const AdminDashboard = () => {
     const formData = new FormData();
     formData.append('file', fileInputRef.current.files[0]);
     try {
-      await fetch('http://localhost:5000/admin/upload-attendance', {
+      await fetch('https://backend-api-corrected-1.onrender.com/admin/upload-attendance', {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData

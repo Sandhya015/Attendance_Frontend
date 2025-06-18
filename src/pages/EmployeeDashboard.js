@@ -1043,8 +1043,8 @@ const HistoryTab = () => {
             history.map((record, i) => (
               <tr key={i}>
                 <td>{formatDateDMY(record.date)}</td>
-                <td>{record.checkin || '-'}</td>
-                <td>{record.checkout || '-'}</td>
+                <td>{record.checkin ? record.checkin.split(" ")[1] + " " + record.checkin.split(" ")[2] : "—"}</td>
+                <td>{record.checkout ? record.checkout.split(" ")[1] + " " + record.checkout.split(" ")[2] : "—"}</td>
               </tr>
             ))
           )}

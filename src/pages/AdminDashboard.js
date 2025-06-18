@@ -56,7 +56,7 @@ const AdminDashboard = () => {
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [newEmployee, setNewEmployee] = useState({
-    name: '', email: '', doj: '', password: '', department: '', position: '', bloodGroup: ''
+    name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: ''
   });
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -168,13 +168,13 @@ const AdminDashboard = () => {
 
   const handleAddEmployee = async () => {
     try {
-      if (!newEmployee.name || !newEmployee.email || !newEmployee.doj || !newEmployee.password || !newEmployee.department || !newEmployee.position || !newEmployee.bloodGroup) {
+      if (!newEmployee.name || !newEmployee.email || !newEmployee.join_date || !newEmployee.password || !newEmployee.department || !newEmployee.position || !newEmployee.bloodGroup) {
         toast.warning("Please fill out all fields.");
         return false;
       }
       await addEmployee(newEmployee);
       toast.success("Employee added successfully!");
-      setNewEmployee({ name: '', email: '', doj: '', password: '', department: '', position: '', bloodGroup: '' });
+      setNewEmployee({ name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: '' });
       return true;
     } catch (err) {
       console.error("Error adding employee:", err);
@@ -185,10 +185,10 @@ const AdminDashboard = () => {
 
   const handleEmployeeFormSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, doj, password, department, position, bloodGroup } = newEmployee;
+    const { name, email, join_date, password, department, position, bloodGroup } = newEmployee;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!name || !email || !doj || !password || !department || !position || !bloodGroup) {
+    if (!name || !email || !join_date || !password || !department || !position || !bloodGroup) {
       toast.error("Please fill in all fields.");
       return;
     }
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
 
     const success = await handleAddEmployee();
     if (success) {
-      setNewEmployee({ name: '', email: '', doj: '', password: '', department: '', position: '', bloodGroup: '' });
+      setNewEmployee({ name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: '' });
     }
   };
 
@@ -378,8 +378,8 @@ const AdminDashboard = () => {
                 </label>
                 <input
                   type="date"
-                  value={newEmployee.doj}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, doj: e.target.value })}
+                  value={newEmployee.join_date}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, join_date: e.target.value })}
                   required
                 />
 

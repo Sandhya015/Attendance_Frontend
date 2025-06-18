@@ -483,6 +483,15 @@ const AttendanceTab = ({ join_date }) => {
           if (todayRecord && todayRecord.checkin) {
             checkedIn = true;
             adminOk = todayRecord.status === "Accepted" || todayRecord.approved === true;
+            let checkinFormatted = todayRecord.checkin;
+            if (typeof todayRecord.checkin === "string" && todayRecord.checkin.includes("T")) {
+              const dt = new Date(todayRecord.checkin);
+              checkinFormatted = dt.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              });
+            }
             lastCI = {
               date: todayRecord.date,
               time: todayRecord.checkin,
@@ -491,6 +500,15 @@ const AttendanceTab = ({ join_date }) => {
             };
             checkedOut = !!todayRecord.checkout;
             if (checkedOut) {
+              let checkoutFormatted = todayRecord.checkout;
+              if (typeof todayRecord.checkout === "string" && todayRecord.checkout.includes("T")) {
+                const dt = new Date(todayRecord.checkout);
+                checkoutFormatted = dt.toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                });
+              }
               lastCO = { date: todayRecord.date, time: todayRecord.checkout };
             }
           }

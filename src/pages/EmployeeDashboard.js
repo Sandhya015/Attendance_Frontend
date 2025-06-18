@@ -125,7 +125,7 @@ const DashboardTab = ({ employee }) => {
   );
 };
 
-const AttendanceTab = ({ doj }) => {
+const AttendanceTab = ({ join_date }) => {
   const [checkInHour, setCheckInHour] = useState("");
   const [checkInMinute, setCheckInMinute] = useState("");
   const [checkInAMPM, setCheckInAMPM] = useState("AM");
@@ -202,9 +202,9 @@ const AttendanceTab = ({ doj }) => {
     fetchLastAttendance();
   }, []);
 
-  const checkInMinDate = doj || "";
+  const checkInMinDate = join_date || "";
   const checkInMaxDate = todayStr;
-  const checkOutMinDate = doj || "";
+  const checkOutMinDate = join_date || "";
   const checkOutMaxDate = todayStr;
   const isCheckInBlocked = !!pendingCheckoutMsg;
   const isCheckInDisabled = hasCheckedIn || isCheckInBlocked;
@@ -663,7 +663,7 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
         <p><strong>Position:</strong> {employee.position}</p>
         <p><strong>Department:</strong> {employee.department}</p>
         <p><strong>Blood Group:</strong> {employee.bloodGroup || "-"}</p>
-        <p><strong>Date of Joining:</strong> {formatDateDMY(employee.doj)}</p>
+        <p><strong>Date of Joining:</strong> {formatDateDMY(employee.join_date)}</p>
         <div className="edit-button-container">
           <button className="edit-btn" onClick={() => setEditMode(true)}>Edit Profile</button>
         </div>
@@ -734,7 +734,7 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
-  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', doj: '', bloodGroup: '' });
+  const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
   const [editMode, setEditMode] = useState(false);
 
   const navigate = useNavigate();
@@ -786,7 +786,7 @@ const EmployeeDashboard = () => {
           <SummaryCards summary={summary} leavesLeft={leavesLeft} nextHoliday={nextHoliday} employee={employee} />
           {activeTab === 'dashboard' && <DashboardTab employee={employee} />}
           {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} />}
-          {activeTab === 'attendance' && <AttendanceTab doj={employee.doj} />}
+          {activeTab === 'attendance' && <AttendanceTab join_date={employee.join_date} />}
           {activeTab === 'history' && <HistoryTab />}
           {activeTab === 'leave' && <LeaveTab />}
           {activeTab === 'holiday' && <HolidayTab />}

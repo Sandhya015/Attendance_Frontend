@@ -125,6 +125,320 @@ const DashboardTab = ({ employee }) => {
   );
 };
 
+// const AttendanceTab = ({ join_date }) => {
+//   const [checkInHour, setCheckInHour] = useState("");
+//   const [checkInMinute, setCheckInMinute] = useState("");
+//   const [checkInAMPM, setCheckInAMPM] = useState("AM");
+//   const [checkOutHour, setCheckOutHour] = useState("");
+//   const [checkOutMinute, setCheckOutMinute] = useState("");
+//   const [checkOutAMPM, setCheckOutAMPM] = useState("AM");
+//   const [showCheckIn, setShowCheckIn] = useState(false);
+//   const [showCheckOut, setShowCheckOut] = useState(false);
+
+//   const [hasCheckedIn, setHasCheckedIn] = useState(false);
+//   const [hasCheckedOut, setHasCheckedOut] = useState(false);
+//   const [adminApproved, setAdminApproved] = useState(false);
+//   const [lastCheckIn, setLastCheckIn] = useState({ date: "", time: "", approved: false, status: "" });
+//   const [lastCheckOut, setLastCheckOut] = useState({ date: "", time: "" });
+//   const [pendingCheckoutMsg, setPendingCheckoutMsg] = useState("");
+//   const [approvalMsg, setApprovalMsg] = useState("");
+
+//   const today = new Date();
+//   const todayStr = today.toISOString().slice(0, 10);
+
+//   useEffect(() => {
+//     async function fetchLastAttendance() {
+//       try {
+//         const res = await getHistory();
+//         let checkedIn = false, checkedOut = false, adminOk = false, lastCI = {}, lastCO = {};
+//         let yesterdayPendingCheckout = false;
+//         let approval = false;
+//         let approvalText = "";
+//         let yesterdayDate = new Date(today);
+//         yesterdayDate.setDate(today.getDate() - 1);
+//         const yestStr = yesterdayDate.toISOString().slice(0, 10);
+
+//         if (Array.isArray(res.data)) {
+//           const sorted = res.data.slice().sort((a, b) => b.date.localeCompare(a.date));
+//           const todayRecord = sorted.find(r => r.date === todayStr);
+//           if (todayRecord && todayRecord.checkin) {
+//             checkedIn = true;
+//             adminOk = todayRecord.status === "Accepted" || todayRecord.approved === true;
+//             lastCI = {
+//               date: todayRecord.date,
+//               time: todayRecord.checkin,
+//               approved: adminOk,
+//               status: todayRecord.status
+//             };
+//             checkedOut = !!todayRecord.checkout;
+//             if (checkedOut) {
+//               lastCO = { date: todayRecord.date, time: todayRecord.checkout };
+//             }
+//           }
+//           const yestRecord = sorted.find(r => r.date === yestStr);
+//           if (yestRecord && yestRecord.checkin && !yestRecord.checkout) {
+//             yesterdayPendingCheckout = true;
+//           }
+//           if (adminOk && checkedIn && !checkedOut) {
+//             approval = true;
+//             approvalText = "✅ Your check-in has been approved.";
+//           }
+//         }
+//         setHasCheckedIn(checkedIn);
+//         setHasCheckedOut(checkedOut);
+//         setAdminApproved(adminOk);
+//         setLastCheckIn(lastCI);
+//         setLastCheckOut(lastCO);
+//         setApprovalMsg(approvalText);
+//         setPendingCheckoutMsg(
+//           yesterdayPendingCheckout
+//             ? "⛔ Yesterday's checkout is pending. Please check out for yesterday before you can check in today."
+//             : ""
+//         );
+//       } catch {
+//         toast.error("Failed to fetch attendance history");
+//       }
+//     }
+//     fetchLastAttendance();
+//   }, []);
+
+//   const checkInMinDate = join_date || "";
+//   const checkInMaxDate = todayStr;
+//   const checkOutMinDate = join_date || "";
+//   const checkOutMaxDate = todayStr;
+//   const isCheckInBlocked = !!pendingCheckoutMsg;
+//   const isCheckInDisabled = hasCheckedIn || isCheckInBlocked;
+//   const isCheckOutDisabled = !hasCheckedIn || hasCheckedOut || !adminApproved;
+
+//   const handleCheckIn = () => setShowCheckIn(true);
+
+//   const handleCheckInSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!checkInHour || !checkInMinute || !checkInAMPM) {
+//       toast.error("Please select time for check-in.");
+//       return;
+//     }
+//     const dateToSend = todayStr;
+//     if (dateToSend < checkInMinDate) {
+//       toast.error("Cannot check in before your Date of Joining.");
+//       return;
+//     }
+//     if (dateToSend > checkInMaxDate) {
+//       toast.error("Cannot check in for future dates.");
+//       return;
+//     }
+//     setShowCheckIn(false);
+//     try {
+//       const time24 = to24HourFormat(checkInHour, checkInMinute, checkInAMPM);
+//       const dateTime = `${dateToSend}T${time24}`;
+//       await checkin({ datetime: dateTime });
+//       setLastCheckIn({ date: dateToSend, time: `${checkInHour.padStart(2, "0")}:${checkInMinute.padStart(2, "0")} ${checkInAMPM}`, approved: false });
+//       setHasCheckedIn(true);
+//       setAdminApproved(false);
+//       setApprovalMsg("");
+//       toast.success("Check-in submitted for approval!");
+//     } catch (err) {
+//       toast.error(err?.response?.data?.msg || "Check-in failed");
+//       setHasCheckedIn(false);
+//       setAdminApproved(false);
+//       setApprovalMsg("");
+//     }
+//   };
+
+//   const handleCheckOut = () => setShowCheckOut(true);
+
+//   const handleCheckOutSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!checkOutHour || !checkOutMinute || !checkOutAMPM) {
+//       toast.error("Please select time for check-out.");
+//       return;
+//     }
+//     const dateToSend = todayStr;
+//     if (dateToSend < checkOutMinDate) {
+//       toast.error("Cannot check out before your Date of Joining.");
+//       return;
+//     }
+//     if (dateToSend > checkOutMaxDate) {
+//       toast.error("Cannot check out for future dates.");
+//       return;
+//     }
+//     setShowCheckOut(false);
+//     try {
+//       const time24 = to24HourFormat(checkOutHour, checkOutMinute, checkOutAMPM);
+//       const dateTime = `${dateToSend}T${time24}`;
+//       await checkout({ datetime: dateTime });
+//       setLastCheckOut({ date: dateToSend, time: `${checkOutHour.padStart(2, "0")}:${checkOutMinute.padStart(2, "0")} ${checkOutAMPM}` });
+//       setHasCheckedOut(true);
+//       toast.success("Checked out successfully!");
+//     } catch (err) {
+//       toast.error(err?.response?.data?.msg || "Check-out failed");
+//       setHasCheckedOut(false);
+//     }
+//   };
+
+//   const renderTimeSelector = (hour, setHour, minute, setMinute, ampm, setAMPM) => (
+//     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+//       <input
+//         type="number"
+//         min="1"
+//         max="12"
+//         value={hour}
+//         onChange={e => {
+//           let val = e.target.value;
+//           if (val === "" || (parseInt(val, 10) >= 1 && parseInt(val, 10) <= 12)) setHour(val.replace(/^0+/, "") || "");
+//         }}
+//         required
+//         style={{ width: 48 }}
+//         placeholder="HH"
+//       />
+//       <span>:</span>
+//       <input
+//         type="number"
+//         min="0"
+//         max="59"
+//         value={minute}
+//         onChange={e => {
+//           let val = e.target.value;
+//           if (val === "" || (parseInt(val, 10) >= 0 && parseInt(val, 10) <= 59)) setMinute(val.replace(/^0+/, "") || "");
+//         }}
+//         required
+//         style={{ width: 48 }}
+//         placeholder="MM"
+//       />
+//       <select
+//         value={ampm}
+//         onChange={e => setAMPM(e.target.value)}
+//         style={{ width: 60 }}
+//       >
+//         <option value="AM">AM</option>
+//         <option value="PM">PM</option>
+//       </select>
+//     </div>
+//   );
+
+//   return (
+//     <div className="card" style={{ position: "relative" }}>
+//       {isCheckInBlocked && (
+//         <div style={{ color: "#c0392b", marginBottom: "1rem", fontWeight: 500, textAlign: "center" }}>
+//           {pendingCheckoutMsg}
+//         </div>
+//       )}
+//       {approvalMsg && (
+//         <div style={{ color: "#27ae60", marginBottom: "1rem", fontWeight: 500, textAlign: "center" }}>
+//           {approvalMsg}
+//         </div>
+//       )}
+//       <div className="btn-group">
+//         <button
+//           onClick={handleCheckIn}
+//           disabled={isCheckInDisabled}
+//           style={isCheckInDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+//         >
+//           Check In
+//         </button>
+//         <button
+//           onClick={handleCheckOut}
+//           disabled={isCheckOutDisabled}
+//           style={isCheckOutDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+//         >
+//           Check Out
+//         </button>
+//       </div>
+//       {showCheckIn && (
+//         <form className="attendance-form-modal" onSubmit={handleCheckInSubmit} style={{ position: "relative" }}>
+//           <button
+//             type="button"
+//             className="close-btn"
+//             title="Cancel"
+//             style={{
+//               background: "none",
+//               border: "none",
+//               fontSize: 18,
+//               color: "#888",
+//               cursor: "pointer",
+//               position: "absolute",
+//               right: 12,
+//               top: 8,
+//               zIndex: 2
+//             }}
+//             onClick={() => setShowCheckIn(false)}
+//           >
+//             <FaTimes />
+//           </button>
+//           <label>
+//             Date
+//             <input
+//               type="date"
+//               value={todayStr}
+//               readOnly
+//               className="calendar-input"
+//             />
+//           </label>
+//           <label>
+//             Time
+//             {renderTimeSelector(checkInHour, setCheckInHour, checkInMinute, setCheckInMinute, checkInAMPM, setCheckInAMPM)}
+//           </label>
+//           <div>
+//             <button type="submit">Submit</button>
+//           </div>
+//         </form>
+//       )}
+//       {showCheckOut && (
+//         <form className="attendance-form-modal" onSubmit={handleCheckOutSubmit} style={{ position: "relative" }}>
+//           <button
+//             type="button"
+//             className="close-btn"
+//             title="Cancel"
+//             style={{
+//               background: "none",
+//               border: "none",
+//               fontSize: 18,
+//               color: "#888",
+//               cursor: "pointer",
+//               position: "absolute",
+//               right: 12,
+//               top: 8,
+//               zIndex: 2
+//             }}
+//             onClick={() => setShowCheckOut(false)}
+//           >
+//             <FaTimes />
+//           </button>
+//           <label>
+//             Date
+//             <input
+//               type="date"
+//               value={todayStr}
+//               readOnly
+//               className="calendar-input"
+//             />
+//           </label>
+//           <label>
+//             Time
+//             {renderTimeSelector(checkOutHour, setCheckOutHour, checkOutMinute, setCheckOutMinute, checkOutAMPM, setCheckOutAMPM)}
+//           </label>
+//           <div>
+//             <button type="submit">Submit</button>
+//           </div>
+//         </form>
+//       )}
+//       {lastCheckIn.date && lastCheckIn.time && (
+//         <p style={{ marginTop: '1rem', fontSize: '14px' }}>
+//           ✅ Checked in at: <strong>{formatDateDMY(lastCheckIn.date)} {lastCheckIn.time}</strong>
+//           {lastCheckIn.approved === false ? <span style={{ color: "#f39c12" }}> (Pending admin approval)</span>
+//             : lastCheckIn.status === "Accepted" ? <span style={{ color: "#27ae60" }}> (Approved)</span>
+//               : ""}
+//         </p>
+//       )}
+//       {lastCheckOut.date && lastCheckOut.time && (
+//         <p style={{ marginTop: '0.7rem', fontSize: '14px' }}>
+//           ✅ Checked out at: <strong>{formatDateDMY(lastCheckOut.date)} {lastCheckOut.time}</strong>
+//         </p>
+//       )}
+//     </div>
+//   );
+// };
+
 const AttendanceTab = ({ join_date }) => {
   const [checkInHour, setCheckInHour] = useState("");
   const [checkInMinute, setCheckInMinute] = useState("");
@@ -132,6 +446,8 @@ const AttendanceTab = ({ join_date }) => {
   const [checkOutHour, setCheckOutHour] = useState("");
   const [checkOutMinute, setCheckOutMinute] = useState("");
   const [checkOutAMPM, setCheckOutAMPM] = useState("AM");
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showCheckOut, setShowCheckOut] = useState(false);
 
@@ -147,6 +463,9 @@ const AttendanceTab = ({ join_date }) => {
   const todayStr = today.toISOString().slice(0, 10);
 
   useEffect(() => {
+    setCheckInDate(todayStr);
+    setCheckOutDate(todayStr);
+
     async function fetchLastAttendance() {
       try {
         const res = await getHistory();
@@ -211,6 +530,7 @@ const AttendanceTab = ({ join_date }) => {
   const isCheckOutDisabled = !hasCheckedIn || hasCheckedOut || !adminApproved;
 
   const handleCheckIn = () => setShowCheckIn(true);
+  const handleCheckOut = () => setShowCheckOut(true);
 
   const handleCheckInSubmit = async (e) => {
     e.preventDefault();
@@ -218,21 +538,20 @@ const AttendanceTab = ({ join_date }) => {
       toast.error("Please select time for check-in.");
       return;
     }
-    const dateToSend = todayStr;
-    if (dateToSend < checkInMinDate) {
+    if (checkInDate < checkInMinDate) {
       toast.error("Cannot check in before your Date of Joining.");
       return;
     }
-    if (dateToSend > checkInMaxDate) {
+    if (checkInDate > checkInMaxDate) {
       toast.error("Cannot check in for future dates.");
       return;
     }
     setShowCheckIn(false);
     try {
       const time24 = to24HourFormat(checkInHour, checkInMinute, checkInAMPM);
-      const dateTime = `${dateToSend}T${time24}`;
+      const dateTime = `${checkInDate}T${time24}`;
       await checkin({ datetime: dateTime });
-      setLastCheckIn({ date: dateToSend, time: `${checkInHour.padStart(2, "0")}:${checkInMinute.padStart(2, "0")} ${checkInAMPM}`, approved: false });
+      setLastCheckIn({ date: checkInDate, time: `${checkInHour.padStart(2, "0")}:${checkInMinute.padStart(2, "0")} ${checkInAMPM}`, approved: false });
       setHasCheckedIn(true);
       setAdminApproved(false);
       setApprovalMsg("");
@@ -245,29 +564,26 @@ const AttendanceTab = ({ join_date }) => {
     }
   };
 
-  const handleCheckOut = () => setShowCheckOut(true);
-
   const handleCheckOutSubmit = async (e) => {
     e.preventDefault();
     if (!checkOutHour || !checkOutMinute || !checkOutAMPM) {
       toast.error("Please select time for check-out.");
       return;
     }
-    const dateToSend = todayStr;
-    if (dateToSend < checkOutMinDate) {
+    if (checkOutDate < checkOutMinDate) {
       toast.error("Cannot check out before your Date of Joining.");
       return;
     }
-    if (dateToSend > checkOutMaxDate) {
+    if (checkOutDate > checkOutMaxDate) {
       toast.error("Cannot check out for future dates.");
       return;
     }
     setShowCheckOut(false);
     try {
       const time24 = to24HourFormat(checkOutHour, checkOutMinute, checkOutAMPM);
-      const dateTime = `${dateToSend}T${time24}`;
+      const dateTime = `${checkOutDate}T${time24}`;
       await checkout({ datetime: dateTime });
-      setLastCheckOut({ date: dateToSend, time: `${checkOutHour.padStart(2, "0")}:${checkOutMinute.padStart(2, "0")} ${checkOutAMPM}` });
+      setLastCheckOut({ date: checkOutDate, time: `${checkOutHour.padStart(2, "0")}:${checkOutMinute.padStart(2, "0")} ${checkOutAMPM}` });
       setHasCheckedOut(true);
       toast.success("Checked out successfully!");
     } catch (err) {
@@ -344,33 +660,21 @@ const AttendanceTab = ({ join_date }) => {
           Check Out
         </button>
       </div>
+
       {showCheckIn && (
         <form className="attendance-form-modal" onSubmit={handleCheckInSubmit} style={{ position: "relative" }}>
-          <button
-            type="button"
-            className="close-btn"
-            title="Cancel"
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: 18,
-              color: "#888",
-              cursor: "pointer",
-              position: "absolute",
-              right: 12,
-              top: 8,
-              zIndex: 2
-            }}
-            onClick={() => setShowCheckIn(false)}
-          >
+          <button type="button" className="close-btn" onClick={() => setShowCheckIn(false)} title="Cancel"
+            style={{ background: "none", border: "none", fontSize: 18, color: "#888", cursor: "pointer", position: "absolute", right: 12, top: 8, zIndex: 2 }}>
             <FaTimes />
           </button>
           <label>
             Date
             <input
               type="date"
-              value={todayStr}
-              readOnly
+              value={checkInDate}
+              onChange={e => setCheckInDate(e.target.value)}
+              min={checkInMinDate}
+              max={checkInMaxDate}
               className="calendar-input"
             />
           </label>
@@ -383,33 +687,21 @@ const AttendanceTab = ({ join_date }) => {
           </div>
         </form>
       )}
+
       {showCheckOut && (
         <form className="attendance-form-modal" onSubmit={handleCheckOutSubmit} style={{ position: "relative" }}>
-          <button
-            type="button"
-            className="close-btn"
-            title="Cancel"
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: 18,
-              color: "#888",
-              cursor: "pointer",
-              position: "absolute",
-              right: 12,
-              top: 8,
-              zIndex: 2
-            }}
-            onClick={() => setShowCheckOut(false)}
-          >
+          <button type="button" className="close-btn" onClick={() => setShowCheckOut(false)} title="Cancel"
+            style={{ background: "none", border: "none", fontSize: 18, color: "#888", cursor: "pointer", position: "absolute", right: 12, top: 8, zIndex: 2 }}>
             <FaTimes />
           </button>
           <label>
             Date
             <input
               type="date"
-              value={todayStr}
-              readOnly
+              value={checkOutDate}
+              onChange={e => setCheckOutDate(e.target.value)}
+              min={checkOutMinDate}
+              max={checkOutMaxDate}
               className="calendar-input"
             />
           </label>
@@ -422,6 +714,7 @@ const AttendanceTab = ({ join_date }) => {
           </div>
         </form>
       )}
+
       {lastCheckIn.date && lastCheckIn.time && (
         <p style={{ marginTop: '1rem', fontSize: '14px' }}>
           ✅ Checked in at: <strong>{formatDateDMY(lastCheckIn.date)} {lastCheckIn.time}</strong>
@@ -438,6 +731,7 @@ const AttendanceTab = ({ join_date }) => {
     </div>
   );
 };
+
 
 const LeaveTab = () => {
   const [leaveDate, setLeaveDate] = useState('');

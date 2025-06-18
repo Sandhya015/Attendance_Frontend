@@ -1019,6 +1019,7 @@ const HistoryTab = () => {
     const fetchHistory = async () => {
       try {
         const res = await getHistory();
+        console.log("History:",res.data);
         setHistory(res.data);
       } catch (err) {
         console.error(err);

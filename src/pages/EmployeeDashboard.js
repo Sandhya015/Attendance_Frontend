@@ -1042,8 +1042,10 @@ const HistoryTab = () => {
             history.map((record, i) => (
               <tr key={i}>
                 <td>{formatDateDMY(record.date)}</td>
-                <td>{record.checkin ? to12HourFormat(record.checkin) : '—'}</td>
-                <td>{record.checkout ? to12HourFormat(record.checkout) : '—'}</td>
+                // <td>{record.checkin ? to12HourFormat(record.checkin) : '—'}</td>
+                // <td>{record.checkout ? to12HourFormat(record.checkout) : '—'}</td>
+                <td>{record.checkin || '—'}</td>
+                <td>{record.checkout || '—'}</td>
               </tr>
             ))
           )}

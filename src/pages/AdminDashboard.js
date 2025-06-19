@@ -594,46 +594,46 @@ const AdminDashboard = () => {
                   </span>
                 </div>
 
-                // {/* Confirm Password Field */}
-                // <div style={{ position: "relative", marginBottom: "10px" }}>
-                //   <input
-                //     type={showConfirmPassword ? "text" : "password"}
-                //     placeholder="Confirm Password"
-                //     value={confirmPassword}
-                //     onChange={(e) => {
-                //       const value = e.target.value;
-                //       setConfirmPassword(value);
-                //       if (newEmployee.password !== value) {
-                //         setPasswordError("Passwords do not match");
-                //       } else {
-                //         setPasswordError("");
-                //       }
-                //     }}
-                //     required
-                //     style={{ width: "100%", paddingRight: "40px" }}
-                //   />
-                //   <span
-                //     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                //     style={{
-                //       position: "absolute",
-                //       right: "10px",
-                //       top: "50%",
-                //       transform: "translateY(-50%)",
-                //       cursor: "pointer",
-                //       color: "#555",
-                //       fontSize: "18px"
-                //     }}
-                //   >
-                //     {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                //   </span>
-                // </div>
+                {/* Confirm Password Field */}
+                <div style={{ position: "relative", marginBottom: "10px" }}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setConfirmPassword(value);
+                      if (newEmployee.password !== value) {
+                        setPasswordError("Passwords do not match");
+                      } else {
+                        setPasswordError("");
+                      }
+                    }}
+                    required
+                    style={{ width: "100%", paddingRight: "40px" }}
+                  />
+                  <span
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      cursor: "pointer",
+                      color: "#555",
+                      fontSize: "18px"
+                    }}
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
 
-                // {/* Password Match Error */}
-                // {passwordError && (
-                //   <div style={{ color: "red", fontSize: "13px", marginBottom: "10px" }}>
-                //     {passwordError}
-                //   </div>
-                // )}
+                {/* Password Match Error */}
+                {passwordError && (
+                  <div style={{ color: "red", fontSize: "13px", marginBottom: "10px" }}>
+                    {passwordError}
+                  </div>
+                )}
 
                 <input
                   type="text"

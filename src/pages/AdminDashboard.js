@@ -573,7 +573,7 @@ const AdminDashboard = () => {
                       const value = e.target.value;
                       setNewEmployee({ ...newEmployee, password: value });
                     }}
-                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+                    // pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
                     title="Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
                     required
                     style={{ width: "100%", paddingRight: "40px" }}

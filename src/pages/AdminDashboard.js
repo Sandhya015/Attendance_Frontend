@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   getAllRecords, getAllLeaveRequests,
   updateLeaveStatus, getPendingCheckins,
-  approveCheckin, addEmployee
+  approveCheckin, rejectCheckin, addEmployee
 } from '../services/api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -10,6 +10,10 @@ import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { FaChartBar, FaClock, FaUserPlus, FaCalendarAlt, FaFileUpload, FaSignOutAlt } from 'react-icons/fa';
 import logo from '../assets/logooo.jpg'; // Make sure this path is correct
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUpload } from "react-icons/fa";
+
+
 
 const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
   <aside className="admin-sidebar">
@@ -111,9 +115,26 @@ const AdminDashboard = () => {
   useEffect(() => { fetchAllData(); }, [fetchAllData]);
   useEffect(() => { if (totalEmployees > 0) calculateAttendance(); }, [records, leaveRequests, totalEmployees, calculateAttendance]);
 
+  // const handleCheckinDecision = async (id, status) => {
+  //   try { await approveCheckin(id, status); fetchPendingCheckins(); fetchRecords(); } catch (err) { console.error("Failed to update check-in:", err); }
+  // };
+
   const handleCheckinDecision = async (id, status) => {
-    try { await approveCheckin(id, status); fetchPendingCheckins(); fetchRecords(); } catch (err) { console.error("Failed to update check-in:", err); }
+    try {
+      if (status === 'Rejected') {
+        await rejectCheckin(id);
+      } else {
+        await approveCheckin(id, status);
+      }
+      fetchPendingCheckins();
+      fetchRecords();
+      toast.success(`Check-in ${status.toLowerCase()} successfully.`);
+    } catch (err) {
+      console.error("Failed to update check-in:", err);
+      toast.error("Failed to update check-in.");
+    }
   };
+
 
   const handleExport = async () => {
     try {
@@ -188,7 +209,7 @@ const AdminDashboard = () => {
     const { name, email, join_date, password, department, position, bloodGroup } = newEmployee;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!name || !email || !join_date || !password || !department || !position || !bloodGroup) {
+    if (!name || !email || !join_date || !password || !department || !position || !bloodGroup || !confirmPassword) {
       toast.error("Please fill in all fields.");
       return;
     }
@@ -203,22 +224,106 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Check if password and confirm password match
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
     const success = await handleAddEmployee();
     if (success) {
       setNewEmployee({ name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: '' });
+      setConfirmPassword('');
     }
   };
 
-  const filteredRecords = records.filter(record => {
-    const recordDate = record.date;
-    let afterFrom = true, beforeTo = true;
-    if (filters.fromDate) afterFrom = recordDate >= filters.fromDate;
-    if (filters.toDate) beforeTo = recordDate <= filters.toDate;
-    return afterFrom && beforeTo;
-  });
+  // const filteredRecords = records.filter(record => {
+  //   const recordDate = record.date;
+  //   let afterFrom = true, beforeTo = true;
+  //   if (filters.fromDate) afterFrom = recordDate >= filters.fromDate;
+  //   if (filters.toDate) beforeTo = recordDate <= filters.toDate;
+  //   return afterFrom && beforeTo;
+  // });
+
+  const filteredRecords = records
+    .filter(record => {
+      const recordDate = record.date;
+      let afterFrom = true, beforeTo = true;
+      if (filters.fromDate) afterFrom = recordDate >= filters.fromDate;
+      if (filters.toDate) beforeTo = recordDate <= filters.toDate;
+      return afterFrom && beforeTo;
+    })
+    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
+
 
   const currentRecords = filteredRecords.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
   const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedCheckins, setSelectedCheckins] = useState([]);
+
+
+  const handleSelectAll = () => {
+    if (selectedCheckins.length === pendingCheckins.length) {
+      setSelectedCheckins([]);
+    } else {
+      const allIds = pendingCheckins.map(item => item._id);
+      setSelectedCheckins(allIds);
+    }
+  };
+
+  const handleCheckboxChange = (id) => {
+    setSelectedCheckins(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+
+  // const handleBulkDecision = async (status) => {
+  //   if (selectedCheckins.length === 0) {
+  //     toast.warning("Select at least one check-in.");
+  //     return;
+  //   }
+
+  //   try {
+  //     await Promise.all(
+  //       selectedCheckins.map(id => approveCheckin(id, status))
+  //     );
+  //     toast.success(`All selected check-ins ${status.toLowerCase()}ed.`);
+  //     setSelectedCheckins([]);
+  //     fetchPendingCheckins();
+  //     fetchRecords();
+  //   } catch (err) {
+  //     toast.error("Bulk operation failed.");
+  //     console.error(err);
+  //   }
+  // };
+
+  const handleBulkDecision = async (status) => {
+    if (selectedCheckins.length === 0) {
+      toast.warning("Select at least one check-in.");
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedCheckins.map(id =>
+          status === 'Rejected' ? rejectCheckin(id) : approveCheckin(id, status)
+        )
+      );
+      toast.success(`All selected check-ins ${status.toLowerCase()}ed.`);
+      setSelectedCheckins([]);
+      fetchPendingCheckins();
+      fetchRecords();
+    } catch (err) {
+      console.error("Bulk operation failed:", err);
+      toast.error("Bulk operation failed.");
+    }
+  };
+
 
   return (
     <div className="admin-dashboard-container">
@@ -284,7 +389,7 @@ const AdminDashboard = () => {
             </>
           )}
 
-          {activeTab === 'pending' && (
+          {/* {activeTab === 'pending' && (
             <div className="admin-pending-checkins">
               <h3>Pending Check-In Approvals</h3>
               <table>
@@ -306,7 +411,63 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
+          )} */}
+
+
+
+          {activeTab === 'pending' && (
+            <div className="admin-pending-checkins">
+              <h3>Pending Check-In Approvals</h3>
+
+              <div style={{ marginBottom: '10px' }}>
+                <button className="admin-approve-btn" onClick={() => handleBulkDecision('Accepted')}>Accept Selected</button>
+                <button className="admin-reject-btn" onClick={() => handleBulkDecision('Rejected')}>Reject Selected</button>
+              </div>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedCheckins.length === pendingCheckins.length && pendingCheckins.length > 0}
+                          onChange={handleSelectAll}
+                        />
+                        <span style={{ fontWeight: 'normal', fontSize: '14px' }}>Select All</span>
+                      </label>
+                    </th>
+                    <th>Email</th>
+                    <th>Date</th>
+                    <th>Check-In Time</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {pendingCheckins.map((item, i) => (
+                    <tr key={i}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedCheckins.includes(item._id)}
+                          onChange={() => handleCheckboxChange(item._id)}
+                        />
+                      </td>
+                      <td>{item.email}</td>
+                      <td>{item.date}</td>
+                      <td>{item.checkin_time || '—'}</td>
+                      <td>
+                        <button className="admin-approve-btn" onClick={() => handleCheckinDecision(item._id, 'Accepted')}>Accept</button>
+                        <button className="admin-reject-btn" onClick={() => handleCheckinDecision(item._id, 'Rejected')}>Reject</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
+
 
           {activeTab === 'leave' && (
             <>
@@ -343,10 +504,29 @@ const AdminDashboard = () => {
           {activeTab === 'upload' && (
             <div className="admin-upload-attendance">
               <h3>Upload Attendance CSV</h3>
-              <input type="file" ref={fileInputRef} accept=".csv" />
-              <button onClick={handleUploadAttendance}>Upload</button>
+
+              <div className="upload-controls">
+                <label htmlFor="attendance-upload" className="upload-label">
+                  <FaUpload style={{ marginRight: '8px' }} />
+                  Choose CSV File
+                </label>
+                <input
+                  id="attendance-upload"
+                  type="file"
+                  accept=".csv"
+                  ref={fileInputRef}
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  style={{ display: 'none' }}
+                />
+                <button onClick={handleUploadAttendance}>Upload</button>
+              </div>
+
+              {selectedFile && (
+                <div className="selected-file">📄 {selectedFile.name}</div>
+              )}
             </div>
           )}
+
 
           {activeTab === 'add' && (
             <div className="admin-add-employee">
@@ -383,13 +563,77 @@ const AdminDashboard = () => {
                   required
                 />
 
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={newEmployee.password}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
-                  required
-                />
+                {/* Password Field */}
+                <div style={{ position: "relative", marginBottom: "10px" }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={newEmployee.password}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewEmployee({ ...newEmployee, password: value });
+                    }}
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+                    title="Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
+                    required
+                    style={{ width: "100%", paddingRight: "40px" }}
+                  />
+                  <span
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      cursor: "pointer",
+                      color: "#555",
+                      fontSize: "18px"
+                    }}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
+
+                {/* Confirm Password Field */}
+                <div style={{ position: "relative", marginBottom: "10px" }}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setConfirmPassword(value);
+                      if (newEmployee.password !== value) {
+                        setPasswordError("Passwords do not match");
+                      } else {
+                        setPasswordError("");
+                      }
+                    }}
+                    required
+                    style={{ width: "100%", paddingRight: "40px" }}
+                  />
+                  <span
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      cursor: "pointer",
+                      color: "#555",
+                      fontSize: "18px"
+                    }}
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
+
+                {/* Password Match Error */}
+                {passwordError && (
+                  <div style={{ color: "red", fontSize: "13px", marginBottom: "10px" }}>
+                    {passwordError}
+                  </div>
+                )}
 
                 <input
                   type="text"

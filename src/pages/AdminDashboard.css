@@ -190,6 +190,11 @@ body, html {
   color: #34495e;
 }
 
+.admin-pending-checkins button {
+  margin-right: 8px;
+}
+
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -238,7 +243,7 @@ tbody tr:hover {
   background-color: #c0392b;
 }
 
-/* UPLOAD ATTENDANCE */
+/* UPLOAD ATTENDANCE
 .admin-upload-attendance input[type="file"] {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -256,10 +261,75 @@ tbody tr:hover {
 
 .admin-upload-attendance button:hover {
   background-color: #2980b9;
+} */
+
+
+.admin-upload-attendance {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 480px;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
+.admin-upload-attendance h3 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.upload-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.upload-label {
+  display: inline-flex;
+  align-items: center;
+  background-color: #2d8cf0;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-label:hover {
+  background-color: #1c75d8;
+}
+
+.admin-upload-attendance button {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.admin-upload-attendance button:hover {
+  background-color: #27ae60;
+}
+
+.selected-file {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #34495e;
+  word-break: break-word;
+}
+
+
+
+
 /* PAGINATION */
-.admin-pagination {
+/* .admin-pagination {
   display: flex;
   justify-content: center;
   margin-top: 20px;
@@ -279,7 +349,55 @@ tbody tr:hover {
 .admin-pagination span {
   padding: 10px;
   margin: 0 5px;
+} */
+
+
+.admin-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 30px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
 }
+
+.admin-pagination button {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  color: #444;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.admin-pagination button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #bbb;
+  transform: translateY(-1px);
+}
+
+.admin-pagination button:disabled {
+  background-color: #fafafa;
+  color: #aaa;
+  border-color: #eee;
+  cursor: not-allowed;
+}
+
+.admin-pagination span {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+  user-select: none;
+}
+
 
 /* ADD EMPLOYEE */
 .admin-add-employee {
@@ -357,4 +475,14 @@ tbody tr:hover {
 
 .admin-add-employee button:hover {
   background-color: #1e40af;
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
 }

@@ -43,6 +43,7 @@ export const getAllRecords = (filters) => API.get('/admin/records', { params: fi
 export const exportCSV = () => API.get('/admin/export', { responseType: 'blob' });
 export const getPendingCheckins = () => API.get('/admin/checkins/pending');
 export const approveCheckin = (id, status) => API.post(`/admin/checkins/approve/${id}`, { status });
+export const rejectCheckin = (id) => API.post(`/admin/checkins/reject/${id}`);
 export const getAllLeaveRequests = () => API.get('/admin/leave-requests');
 export const updateLeaveStatus = (id, status) => API.put(`/admin/leave-requests/${id}`, { status });
 export const addEmployee = (employeeData) => API.post('/admin/add-employee', employeeData);

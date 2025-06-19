@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 
 const LoginPage = ({ onClose, openForgotPassword }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -16,6 +18,9 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
+
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -66,30 +71,48 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
             value={formData.email}
             onChange={handleChange}
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              style={{ width: '100%', paddingRight: '40px' }}
+            />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                cursor: 'pointer',
+                color: '#666',
+                fontSize: '18px'
+              }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          </div>
+
           <button type="submit">Login</button>
           <div className="extra-links">
             <p>
-            <span
-  onClick={openForgotPassword}
-  style={{
-    cursor: 'pointer',
-    color: '#0e1a86',
-    textDecoration: 'underline',
-    fontWeight: 'bold',
-    display: 'inline-block',
-    marginTop: '15px'
-  }}
->
-  Forgot Password?
-</span>
+              <span
+                onClick={openForgotPassword}
+                style={{
+                  cursor: 'pointer',
+                  color: '#0e1a86',
+                  textDecoration: 'underline',
+                  fontWeight: 'bold',
+                  display: 'inline-block',
+                  marginTop: '15px'
+                }}
+              >
+                Forgot Password?
+              </span>
             </p>
             {/* <p><a href="/signup">Don't have an account? Signup</a></p> */}
           </div>

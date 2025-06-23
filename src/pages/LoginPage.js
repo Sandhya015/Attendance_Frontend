@@ -49,7 +49,7 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
       localStorage.setItem('role', role);
       localStorage.setItem('name', name);
       onClose();
-      navigate(role === 'admin' ? '/admin' : '/employee');
+      navigate(role === 'admin' ? '/admin' : role === 'manager' ? '/manager' : '/employee');
     } catch (err) {
       setError(err.response?.data?.msg || 'Login failed!');
     }

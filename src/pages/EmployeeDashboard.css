@@ -720,3 +720,19 @@ h1 {
   font-weight: 600;
   font-size: 14px;
 }
+
+
+.status-full {
+  color: green;
+  font-weight: bold;
+}
+
+.status-half {
+  color: orange;
+  font-weight: bold;
+}
+
+.status-leave {
+  color: red;
+  font-weight: bold;
+}

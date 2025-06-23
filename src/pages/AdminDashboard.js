@@ -12,6 +12,10 @@ import { FaChartBar, FaClock, FaUserPlus, FaCalendarAlt, FaFileUpload, FaSignOut
 import logo from '../assets/logooo.jpg'; // Make sure this path is correct
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
+import { FaUserEdit } from 'react-icons/fa';
+import { getAllHolidays, addHoliday, deleteHoliday } from '../services/api';
+
+
 
 
 
@@ -20,6 +24,8 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
     <div className="admin-sidebar-logo">Admin</div>
     <ul>
       <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaChartBar /> Attendance</li>
+      <li className={activeTab === 'editEmployee' ? 'active' : ''} onClick={() => setActiveTab('editEmployee')}><FaUserEdit /> Edit Employee</li>
+      <li className={activeTab === 'holidays' ? 'active' : ''} onClick={() => setActiveTab('holidays')}><FaCalendarAlt /> Manage Holidays</li>
       <li className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}><FaClock /> Pending Check-ins</li>
       <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaCalendarAlt /> Leave Requests</li>
       <li className={activeTab === 'upload' ? 'active' : ''} onClick={() => setActiveTab('upload')}><FaFileUpload /> Upload Attendance</li>
@@ -60,7 +66,7 @@ const AdminDashboard = () => {
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [newEmployee, setNewEmployee] = useState({
-    name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: ''
+    emp_code: '', name: '', email: '', reporting_to: [], proxy_approver: '', join_date: '', password: '', department: '', position: '', bloodGroup: ''
   });
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -97,6 +103,8 @@ const AdminDashboard = () => {
     }
   }, []);
 
+
+
   const fetchAllData = useCallback(async () => {
     await fetchRecords();
     await fetchLeaveRequests();
@@ -114,6 +122,8 @@ const AdminDashboard = () => {
 
   useEffect(() => { fetchAllData(); }, [fetchAllData]);
   useEffect(() => { if (totalEmployees > 0) calculateAttendance(); }, [records, leaveRequests, totalEmployees, calculateAttendance]);
+
+
 
   // const handleCheckinDecision = async (id, status) => {
   //   try { await approveCheckin(id, status); fetchPendingCheckins(); fetchRecords(); } catch (err) { console.error("Failed to update check-in:", err); }
@@ -134,6 +144,28 @@ const AdminDashboard = () => {
       toast.error("Failed to update check-in.");
     }
   };
+
+  const [employees, setEmployees] = useState([]);
+
+  const fetchEmployees = useCallback(async () => {
+    try {
+      const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/employees', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      console.log("Employee API Response:", data);
+      setEmployees(data); // 👈 FIX: set directly from data (it's already an array)
+    } catch (err) {
+      console.error("Failed to fetch employees:", err);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    if (activeTab === 'editEmployee') {
+      fetchEmployees();
+    }
+  }, [activeTab, fetchEmployees]);
 
 
   const handleExport = async () => {
@@ -187,55 +219,90 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAddEmployee = async () => {
-    try {
-      if (!newEmployee.name || !newEmployee.email || !newEmployee.join_date || !newEmployee.password || !newEmployee.department || !newEmployee.position || !newEmployee.bloodGroup) {
-        toast.warning("Please fill out all fields.");
-        return false;
-      }
-      await addEmployee(newEmployee);
-      toast.success("Employee added successfully!");
-      setNewEmployee({ name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: '' });
-      return true;
-    } catch (err) {
-      console.error("Error adding employee:", err);
-      toast.error("Failed to add employee.");
+ const handleAddEmployee = async () => {
+  try {
+    const { name, email, join_date, password, department, position, bloodGroup, emp_code, reporting_to, proxy_approver } = newEmployee;
+
+    if (!name || !email || !join_date || !password || !department || !position || !bloodGroup || !emp_code || !reporting_to.length || !proxy_approver) {
+      toast.warning("Please fill out all fields.");
       return false;
     }
-  };
+
+    await addEmployee(newEmployee);
+    toast.success("Employee added successfully!");
+    setNewEmployee({
+      emp_code: '', name: '', email: '', join_date: '', password: '',
+      department: '', position: '', bloodGroup: '',
+      reporting_to: [], proxy_approver: ''
+    });
+    return true;
+  } catch (err) {
+    console.error("Error adding employee:", err);
+    toast.error("Failed to add employee.");
+    return false;
+  }
+};
+
 
   const handleEmployeeFormSubmit = async (e) => {
-    e.preventDefault();
-    const { name, email, join_date, password, department, position, bloodGroup } = newEmployee;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  e.preventDefault();
+  const {
+    emp_code, name, email, join_date, password,
+    department, position, bloodGroup,
+    reporting_to, proxy_approver
+  } = newEmployee;
 
-    if (!name || !email || !join_date || !password || !department || !position || !bloodGroup || !confirmPassword) {
-      toast.error("Please fill in all fields.");
-      return;
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email)) {
-      toast.error("Enter a valid email address.");
-      return;
-    }
+  if (!emp_code || !name || !email || !join_date || !password ||
+      !department || !position || !bloodGroup || !confirmPassword ||
+      !proxy_approver) {
+    toast.error("Please fill in all required fields.");
+    return;
+  }
 
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters.");
-      return;
-    }
+  if (!emailRegex.test(email)) {
+    toast.error("Enter a valid email address.");
+    return;
+  }
 
-    // Check if password and confirm password match
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
+  if (!emailRegex.test(proxy_approver)) {
+    toast.error("Enter a valid proxy approver email.");
+    return;
+  }
 
-    const success = await handleAddEmployee();
-    if (success) {
-      setNewEmployee({ name: '', email: '', join_date: '', password: '', department: '', position: '', bloodGroup: '' });
-      setConfirmPassword('');
-    }
-  };
+  if (!reporting_to.length) {
+    toast.error("Please enter at least one Reporting To email.");
+    return;
+  }
+
+  const invalidReports = reporting_to.filter(e => !emailRegex.test(e));
+  if (invalidReports.length) {
+    toast.error(`Invalid Reporting To email(s): ${invalidReports.join(', ')}`);
+    return;
+  }
+
+  if (password.length < 8) {
+    toast.error("Password must be at least 8 characters.");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    toast.error("Passwords do not match.");
+    return;
+  }
+
+  const success = await handleAddEmployee();
+  if (success) {
+    setNewEmployee({
+      emp_code: '', name: '', email: '', join_date: '', password: '',
+      department: '', position: '', bloodGroup: '',
+      reporting_to: [], proxy_approver: ''
+    });
+    setConfirmPassword('');
+  }
+};
+
 
   // const filteredRecords = records.filter(record => {
   //   const recordDate = record.date;
@@ -264,6 +331,70 @@ const AdminDashboard = () => {
   const [passwordError, setPasswordError] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedCheckins, setSelectedCheckins] = useState([]);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [holidays, setHolidays] = useState([]);
+  const [newHoliday, setNewHoliday] = useState({ date: '', name: '' });
+  const [leavePage, setLeavePage] = useState(1);
+  const leavePerPage = 5;
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [holidayToDelete, setHolidayToDelete] = useState(null);
+
+
+  const totalLeavePages = Math.ceil(leaveRequests.length / leavePerPage);
+  const paginatedLeaveRequests = leaveRequests.slice(
+    (leavePage - 1) * leavePerPage,
+    leavePage * leavePerPage
+  );
+
+  useEffect(() => {
+    if (activeTab === 'holidays') {
+      fetchHolidays();  // Call it when tab is activated
+    }
+  }, [activeTab]);
+
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await getAllHolidays();
+      setHolidays(res.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error loading holidays");
+    }
+  };
+
+
+
+  const handleAddHoliday = async () => {
+    if (!newHoliday.date || !newHoliday.name) {
+      toast.warning("Please enter both date and name");
+      return;
+    }
+
+    try {
+      await addHoliday(newHoliday);
+      toast.success("Holiday added");
+      setNewHoliday({ date: '', name: '' });
+      fetchHolidays(); // refresh
+    } catch (err) {
+      if (err.response?.status === 409) {
+        toast.error("Holiday for this date already exists");
+      } else {
+        toast.error("Failed to add holiday");
+      }
+    }
+  };
+
+  const handleDeleteHoliday = async (id) => {
+    try {
+      await deleteHoliday(id);
+      toast.success("Holiday deleted");
+      fetchHolidays();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete holiday");
+    }
+  };
 
 
   const handleSelectAll = () => {
@@ -325,6 +456,60 @@ const AdminDashboard = () => {
   };
 
 
+  const [editingEmp, setEditingEmp] = useState(null);
+
+  const openEditModal = (emp) => {
+    setEditingEmp(emp);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      await fetch(`https://backend-api-corrected-1.onrender.com/admin/employees/${editingEmp._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(editingEmp)
+      });
+      toast.success("Employee updated!");
+      setEditingEmp(null);
+      fetchEmployees();
+    } catch (err) {
+      toast.error("Failed to update employee.");
+      console.error(err);
+    }
+  };
+
+
+  const handleDeleteEmployee = async (empId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this employee?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`https://backend-api-corrected-1.onrender.com/admin/employees/${empId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      if (res.ok) {
+        toast.success("Employee deleted successfully");
+        fetchEmployees(); // refresh the list
+      } else {
+        toast.error("Failed to delete employee");
+      }
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+      toast.error("Server error while deleting");
+    }
+  };
+
+
+
+
+
   return (
     <div className="admin-dashboard-container">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
@@ -366,17 +551,41 @@ const AdminDashboard = () => {
                 <h3>Attendance Records</h3>
                 <table>
                   <thead>
-                    <tr><th>Email</th><th>Date</th><th>Check-In</th><th>Check-Out</th></tr>
+                    <tr>
+                      <th>Email</th>
+                      <th>Date</th>
+                      <th>Check-In</th>
+                      <th>Check-Out</th>
+                      <th>Hours Worked</th>
+                      <th>Status</th>
+                    </tr>
                   </thead>
                   <tbody>
-                    {currentRecords.map((record, i) => (
-                      <tr key={i}>
-                        <td>{record.email}</td>
-                        <td>{record.date}</td>
-                        <td>{record.checkin || '—'}</td>
-                        <td>{record.checkout || '—'}</td>
-                      </tr>
-                    ))}
+                    {currentRecords.map((record, i) => {
+                      const hours = record.hours_worked || 0;
+                      let status = 'Absent';
+                      if (hours >= 9) status = 'Present';
+                      else if (hours >= 4) status = 'Half-Day';
+                      else if (hours > 0) status = 'Full-Day Leave';
+
+                      return (
+                        <tr key={i}>
+                          <td>{record.email}</td>
+                          <td>{record.date}</td>
+                          <td>{record.checkin || '—'}</td>
+                          <td>{record.checkout || '—'}</td>
+                          <td>{hours ? hours.toFixed(2) + ' hrs' : '—'}</td>
+                          <td>
+                            <span className={
+                              status === "Present" ? "status-full" :
+                                status === "Half-Day" ? "status-half" : "status-leave"
+                            }>
+                              {status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
 
@@ -389,29 +598,227 @@ const AdminDashboard = () => {
             </>
           )}
 
-          {/* {activeTab === 'pending' && (
-            <div className="admin-pending-checkins">
-              <h3>Pending Check-In Approvals</h3>
-              <table>
+          {activeTab === 'holidays' && (
+            <div className="admin-manage-holidays">
+              <h3>Manage Holidays</h3>
+
+              {/* Add Holiday Form */}
+              <div className="add-holiday-form">
+                <input
+                  type="date"
+                  value={newHoliday.date}
+                  onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Holiday Name"
+                  value={newHoliday.name}
+                  onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
+                  required
+                />
+                <button onClick={handleAddHoliday}>Add Holiday</button>
+              </div>
+
+              {/* Holiday List Table */}
+              <table className="holiday-table">
                 <thead>
-                  <tr><th>Email</th><th>Date</th><th>Check-In Time</th><th>Actions</th></tr>
+                  <tr>
+                    <th>Date</th>
+                    <th>Holiday</th>
+                    <th>Actions</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {pendingCheckins.map((item, i) => (
-                    <tr key={i}>
-                      <td>{item.email}</td>
-                      <td>{item.date}</td>
-                      <td>{item.checkin_time || '—'}</td>
-                      <td>
-                        <button className="admin-approve-btn" onClick={() => handleCheckinDecision(item._id, 'Accepted')}>Accept</button>
-                        <button className="admin-reject-btn" onClick={() => handleCheckinDecision(item._id, 'Rejected')}>Reject</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {holidays.length === 0 ? (
+                    <tr><td colSpan="3" style={{ textAlign: 'center' }}>No holidays added yet.</td></tr>
+                  ) : (
+                    holidays.map(holiday => (
+                      <tr key={holiday._id}>
+                        <td>{holiday.date}</td>
+                        <td>{holiday.name}</td>
+                        <td>
+                          <button
+                            className="delete-holiday-btn"
+                            onClick={() => {
+                              setHolidayToDelete(holiday);
+                              setShowConfirmModal(true);
+                            }}
+                          >
+                            Delete
+                          </button>
+
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+
+            </div>
+          )}
+
+          {showConfirmModal && holidayToDelete && (
+            <div className="confirm-overlay">
+              <div className="confirm-modal">
+                <h4>Confirm Deletion</h4>
+                <p>Are you sure you want to delete <strong>{holidayToDelete.name}</strong>?</p>
+                <div className="confirm-actions">
+                  <button
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowConfirmModal(false);
+                      setHolidayToDelete(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="confirm-btn"
+                    onClick={() => {
+                      handleDeleteHoliday(holidayToDelete._id);
+                      setShowConfirmModal(false);
+                      setHolidayToDelete(null);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+
+          {activeTab === 'editEmployee' && (
+            <div className="admin-edit-employee">
+              <h3>Edit Employee Details</h3>
+              <table>
+                <thead>
+                  <tr><th>Name</th><th>Email</th><th>Department</th><th>Position</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  {employees && employees.length > 0 ? (
+                    employees.map(emp => (
+                      <tr key={emp._id}>
+                        <td>{emp.name}</td>
+                        <td>{emp.email}</td>
+                        <td>{emp.department}</td>
+                        <td>{emp.position}</td>
+                        <td>
+                          <button onClick={() => openEditModal(emp)}>Edit</button>
+                          <button
+                            onClick={() => setEmployeeToDelete(emp)}
+                            style={{ marginLeft: '10px', backgroundColor: 'red', color: '#fff' }}
+                          >
+                            Delete
+                          </button>
+
+                        </td>
+
+
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td colSpan="5">No employee data found.</td></tr>
+                  )}
+
                 </tbody>
               </table>
             </div>
-          )} */}
+          )}
+
+          {editingEmp && (
+            <div className="edit-modal-overlay">
+              <form className="edit-modal" onSubmit={(e) => { e.preventDefault(); handleEditSubmit(); }}>
+                <h2>Edit Employee</h2>
+
+                <div className="form-group">
+                  <label>Name</label>
+                  <input
+                    type="text"
+                    value={editingEmp.name}
+                    onChange={e => setEditingEmp({ ...editingEmp, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={editingEmp.email}
+                    onChange={e => setEditingEmp({ ...editingEmp, email: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Department</label>
+                  <input
+                    type="text"
+                    value={editingEmp.department}
+                    onChange={e => setEditingEmp({ ...editingEmp, department: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Position</label>
+                  <input
+                    type="text"
+                    value={editingEmp.position}
+                    onChange={e => setEditingEmp({ ...editingEmp, position: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Leaves</label>
+                  <input
+                    type="number"
+                    value={editingEmp.leaves || ''}
+                    onChange={e => {
+                      const value = e.target.value;
+                      if (!isNaN(value) && Number(value) >= 0) {
+                        setEditingEmp({ ...editingEmp, leaves: Number(value) });
+                      }
+                    }}
+                    min="0"
+                    required
+                  />
+                </div>
+
+
+                <div className="modal-actions">
+                  <button type="button" className="cancel-btn" onClick={() => setEditingEmp(null)}>Cancel</button>
+                  <button type="submit" className="save-btn">Save</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {employeeToDelete && (
+            <div className="edit-modal-overlay">
+              <div className="edit-modal">
+                <h3>Confirm Deletion</h3>
+                <p>Are you sure you want to delete <strong>{employeeToDelete.name}</strong>?</p>
+                <div className="modal-actions">
+                  <button className="cancel-btn" onClick={() => setEmployeeToDelete(null)}>Cancel</button>
+                  <button
+                    className="delete-btn"
+                    onClick={() => {
+                      handleDeleteEmployee(employeeToDelete._id);
+                      setEmployeeToDelete(null);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+
 
 
 
@@ -478,12 +885,14 @@ const AdminDashboard = () => {
                 <div className="admin-card rejected">Rejected: {leaveRequests.filter(l => l.status === 'Rejected').length}</div>
               </div>
               <table>
-                <thead><tr><th>Email</th><th>Date</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Email</th><th>From Date</th><th>To Date</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {leaveRequests.map((leave, i) => (
+                  {paginatedLeaveRequests.map((leave, i) => (
+
                     <tr key={i}>
                       <td>{leave.email}</td>
-                      <td>{leave.date}</td>
+                      <td>{leave.from_date}</td>
+                      <td>{leave.to_date}</td>
                       <td>{leave.reason}</td>
                       <td>{leave.status}</td>
                       <td>
@@ -498,6 +907,23 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+
+              <div className="admin-pagination">
+                <button
+                  disabled={leavePage === 1}
+                  onClick={() => setLeavePage(p => Math.max(1, p - 1))}
+                >
+                  Previous
+                </button>
+                <span>{leavePage} / {totalLeavePages}</span>
+                <button
+                  disabled={leavePage === totalLeavePages}
+                  onClick={() => setLeavePage(p => Math.min(totalLeavePages, p + 1))}
+                >
+                  Next
+                </button>
+              </div>
+
             </>
           )}
 
@@ -532,6 +958,21 @@ const AdminDashboard = () => {
             <div className="admin-add-employee">
               <h3>Add New Employee</h3>
               <form onSubmit={handleEmployeeFormSubmit} autoComplete="off">
+
+                {/* Employee Code */}
+                <input
+                  type="text"
+                  placeholder="Employee Code"
+                  value={newEmployee.emp_code}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[a-zA-Z0-9\-]*$/.test(value)) {  // Allow alphanumeric and dash
+                      setNewEmployee({ ...newEmployee, emp_code: value });
+                    }
+                  }}
+                  required
+                />
+
                 <input
                   type="text"
                   placeholder="Full Name"
@@ -563,6 +1004,47 @@ const AdminDashboard = () => {
                   required
                 />
 
+                {/* Reporting To (multi-email input) */}
+                <label>Reporting To (Press Enter after each email)</label>
+                <input
+                  type="text"
+                  placeholder="Enter email and press Enter"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const email = e.target.value.trim();
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (emailRegex.test(email) && !newEmployee.reporting_to.includes(email)) {
+                        setNewEmployee({ ...newEmployee, reporting_to: [...newEmployee.reporting_to, email] });
+                        e.target.value = '';
+                      } else {
+                        toast.warning("Enter a valid and unique email");
+                      }
+                    }
+                  }}
+                />
+                <div className="email-tags">
+                  {newEmployee.reporting_to.map((email, idx) => (
+                    <span key={idx} className="email-tag">
+                      {email}
+                      <button type="button" onClick={() => {
+                        const updated = newEmployee.reporting_to.filter(e => e !== email);
+                        setNewEmployee({ ...newEmployee, reporting_to: updated });
+                      }}>×</button>
+                    </span>
+                  ))}
+                </div>
+
+                {/* Proxy Approval */}
+                <label>Proxy Approval Email</label>
+                <input
+                  type="email"
+                  placeholder="Proxy approval email"
+                  value={newEmployee.proxy_approver}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, proxy_approver: e.target.value })}
+                />
+
+
                 {/* Password Field */}
                 <div style={{ position: "relative", marginBottom: "10px" }}>
                   <input
@@ -573,7 +1055,7 @@ const AdminDashboard = () => {
                       const value = e.target.value;
                       setNewEmployee({ ...newEmployee, password: value });
                     }}
-                    // pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+                    // pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$"
                     title="Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
                     required
                     style={{ width: "100%", paddingRight: "40px" }}

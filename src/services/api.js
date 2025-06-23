@@ -22,6 +22,9 @@ export const getHistory = () => API.get('/attendance/history');
 export const submitLeaveRequest = (data) => API.post('/leave/request', data);
 export const getLeaveHistory = () => API.get('/leave/my-requests');
 export const getEmployeeSummary = () => API.get('/employee/summary');
+// api.js
+export const getHolidays = () => API.get('/employee/holidays');
+
 
 export const getProfile = () =>
   axios.get('https://backend-api-corrected-1.onrender.com/employee/profile', {
@@ -48,5 +51,11 @@ export const getAllLeaveRequests = () => API.get('/admin/leave-requests');
 export const updateLeaveStatus = (id, status) => API.put(`/admin/leave-requests/${id}`, { status });
 export const addEmployee = (employeeData) => API.post('/admin/add-employee', employeeData);
 export const addManualAttendance = (data) => API.post('/admin/manual-attendance', data);
+// HOLIDAYS
+export const addHoliday = (holidayData) => API.post('/admin/holidays', holidayData);
+export const deleteHoliday = (id) => API.delete(`/admin/holidays/${id}`);
+export const getAllHolidays = () => API.get('/admin/holidays');
+
+
 
 export default API;

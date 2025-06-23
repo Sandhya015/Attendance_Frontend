@@ -3,7 +3,7 @@ import {
   checkin, checkout, getHistory,
   getLeaveHistory, submitLeaveRequest,
   getEmployeeSummary, getProfile,
-  updateEmployeeProfile
+  updateEmployeeProfile,getHolidays
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -35,7 +35,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
     <div className="sidebar-logo">Employee</div>
     <ul>
       <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaClock /> Attendance</li>
-      <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}><FaHome /> Dashboard</li>
+      {/* <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}><FaHome /> Dashboard</li> */}
       <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><FaUser /> Profile</li>
       <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaRegCalendarAlt /> Leave Request</li>
       <li className={activeTab === 'holiday' ? 'active' : ''} onClick={() => setActiveTab('holiday')}><FaCalendarAlt /> Holiday Calendar</li>
@@ -51,6 +51,7 @@ const TopNavbar = () => (
     <img src={logo} alt="Logo" className="navbar-logo-top-right" />
   </header>
 );
+
 
 
 
@@ -221,6 +222,9 @@ const LeaveTab = () => {
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 5;
+  const [leaveFromDate, setLeaveFromDate] = useState('');
+  const [leaveToDate, setLeaveToDate] = useState('');
+
 
   useEffect(() => {
     getLeaveHistory()
@@ -231,19 +235,27 @@ const LeaveTab = () => {
   const handleLeaveSubmit = async (e) => {
     e.preventDefault();
     try {
-      await submitLeaveRequest({ date: leaveDate, reason });
+      await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
       toast.success('Leave request submitted');
-      setLeaveDate('');
+
+      // Reset fields
+      setLeaveFromDate('');
+      setLeaveToDate('');
       setReason('');
-      getLeaveHistory().then(res => setLeaveHistory(res.data || []));
+
+      // Refresh leave history
+      const res = await getLeaveHistory();
+      setLeaveHistory(res.data || []);
     } catch {
       toast.error('Failed to submit leave request');
     }
   };
 
+
   const startIdx = (page - 1) * perPage;
   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
   const totalPages = Math.ceil(leaveHistory.length / perPage);
+  
 
   return (
     <div className="leave-tab-grid">
@@ -251,16 +263,24 @@ const LeaveTab = () => {
         <h3>Leave Request Form</h3>
         <form className="leave-form" onSubmit={handleLeaveSubmit}>
           <label>
-            Leave Date
+            Leave From
             <input
               type="date"
-              value={leaveDate}
-              onChange={e => setLeaveDate(e.target.value)}
-              placeholder="dd / mm / yyyy"
+              value={leaveFromDate}
+              onChange={e => setLeaveFromDate(e.target.value)}
               required
-              className="calendar-input"
             />
           </label>
+          <label>
+            Leave To
+            <input
+              type="date"
+              value={leaveToDate}
+              onChange={e => setLeaveToDate(e.target.value)}
+              required
+            />
+          </label>
+
           <label>
             Reason
             <textarea
@@ -274,31 +294,33 @@ const LeaveTab = () => {
         </form>
       </div>
       <div className="leave-history-card">
-        <h4>Leave History</h4>
-        <table>
-          <thead>
+      <h4>Leave History</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Reason</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pageData.length === 0 ? (
             <tr>
-              <th>Date</th>
-              <th>Reason</th>
-              <th>Status</th>
+              <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
             </tr>
-          </thead>
-          <tbody>
-            {pageData.length === 0 ? (
-              <tr>
-                <td colSpan={3} style={{ textAlign: 'center' }}>No leave history</td>
+          ) : (
+            pageData.map((leave, idx) => (
+              <tr key={idx}>
+                <td>{leave.from_date}</td>
+                <td>{leave.to_date}</td>
+                <td>{leave.reason}</td>
+                <td>{leave.status}</td>
               </tr>
-            ) : (
-              pageData.map((leave, idx) => (
-                <tr key={idx}>
-                  <td>{leave.date}</td>
-                  <td>{leave.reason}</td>
-                  <td>{leave.status}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
         {totalPages > 1 && (
           <div className="leave-pagination">
             <button
@@ -344,8 +366,24 @@ const getNextHoliday = () => {
 };
 
 const HolidayTab = () => {
+  const [holidays, setHolidays] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 5;
+
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const res = await getHolidays();
+        setHolidays(res.data || []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load holidays");
+      }
+    };
+
+    fetchHolidays();
+  }, []);
+
   const totalPages = Math.ceil(holidays.length / perPage);
   const pageData = holidays.slice((page - 1) * perPage, page * perPage);
 
@@ -357,12 +395,16 @@ const HolidayTab = () => {
           <tr><th>Date</th><th>Holiday</th></tr>
         </thead>
         <tbody>
-          {pageData.map((h, idx) => (
-            <tr key={idx}>
-              <td>{h.date}</td>
-              <td>{h.name}</td>
-            </tr>
-          ))}
+          {pageData.length === 0 ? (
+            <tr><td colSpan="2">No holidays found</td></tr>
+          ) : (
+            pageData.map((h, idx) => (
+              <tr key={idx}>
+                <td>{h.date}</td>
+                <td>{h.name}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
       {totalPages > 1 && (
@@ -420,21 +462,43 @@ const HistoryTab = () => {
       <h3>Attendance History</h3>
       <table>
         <thead>
-          <tr><th>Date</th><th>Check-in</th><th>Check-out</th></tr>
+          {/* <tr><th>Date</th><th>Check-in</th><th>Check-out</th></tr> */}
+          <tr><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours worked</th><th>Status</th></tr>
+
         </thead>
         <tbody>
           {pageData.length === 0 ? (
-            <tr><td colSpan="3">No records found</td></tr>
+            <tr><td colSpan="5">No records found</td></tr>
           ) : (
-            pageData.map((record, i) => (
-              <tr key={i}>
-                <td>{formatDateDMY(record.date)}</td>
-                <td>{record.checkin ? record.checkin.split(" ")[1] + " " + record.checkin.split(" ")[2] : "—"}</td>
-                <td>{record.checkout ? record.checkout.split(" ")[1] + " " + record.checkout.split(" ")[2] : "—"}</td>
-              </tr>
-            ))
+            pageData.map((record, i) => {
+              const hours_worked = record.hours_worked;
+
+              // Determine attendance status
+              let status = 'Absent';
+              if (hours_worked >= 9) status = 'Present';
+              else if (hours_worked >= 4) status = 'Half-Day';
+              else if (hours_worked > 0) status = 'Full-Day Leave';
+
+              return (
+                <tr key={i}>
+                  <td>{formatDateDMY(record.date)}</td>
+                  <td>{record.checkin ? record.checkin.split(" ")[1] + " " + record.checkin.split(" ")[2] : "—"}</td>
+                  <td>{record.checkout ? record.checkout.split(" ")[1] + " " + record.checkout.split(" ")[2] : "—"}</td>
+                  <td>{hours_worked ? hours_worked.toFixed(2) + " hrs" : "—"}</td>
+                  <td>
+                    <span className={
+                      status === "Present" ? "status-full" :
+                        status === "Half-Day" ? "status-half" : "status-leave"
+                    }>
+                      {status}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
+
       </table>
 
       {/* Pagination Controls */}
@@ -468,6 +532,7 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
     {!editMode ? (
       <>
         <p><strong>Name:</strong> {employee.name}</p>
+        <p><strong>Employee Code:</strong> {employee.emp_code}</p>
         <p><strong>Email:</strong> {employee.email}</p>
         <p><strong>Position:</strong> {employee.position}</p>
         <p><strong>Department:</strong> {employee.department}</p>
@@ -594,7 +659,7 @@ const EmployeeDashboard = () => {
         <main className="main-content">
           <SummaryCards summary={summary} leavesLeft={leavesLeft} nextHoliday={nextHoliday} employee={employee} />
           {activeTab === 'attendance' && <AttendanceTab join_date={employee.join_date} />}
-          {activeTab === 'dashboard' && <DashboardTab employee={employee} />}
+          {/* {activeTab === 'dashboard' && <DashboardTab employee={employee} />} */}
           {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} />}
           {activeTab === 'history' && <HistoryTab />}
           {activeTab === 'leave' && <LeaveTab />}

@@ -66,7 +66,7 @@ const AdminDashboard = () => {
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [newEmployee, setNewEmployee] = useState({
-    emp_code: '', name: '', email: '', reporting_to: [], proxy_approver: '', join_date: '', password: '', department: '', position: '', bloodGroup: ''
+    emp_code: '', name: '', email: '', reporting_to: [], join_date: '', password: '', department: '', position: '', bloodGroup: '',role: ''
   });
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -219,89 +219,83 @@ const AdminDashboard = () => {
     }
   };
 
- const handleAddEmployee = async () => {
-  try {
-    const { name, email, join_date, password, department, position, bloodGroup, emp_code, reporting_to, proxy_approver } = newEmployee;
+  const handleAddEmployee = async () => {
+    try {
+      const { name, email, join_date, password, department, position, bloodGroup, emp_code, reporting_to } = newEmployee;
 
-    if (!name || !email || !join_date || !password || !department || !position || !bloodGroup || !emp_code || !reporting_to.length || !proxy_approver) {
-      toast.warning("Please fill out all fields.");
+      if (!name || !email || !join_date || !password || !department || !position || !bloodGroup || !emp_code || !reporting_to.length) {
+        toast.warning("Please fill out all fields.");
+        return false;
+      }
+
+      await addEmployee(newEmployee);
+      toast.success("Employee added successfully!");
+      setNewEmployee({
+        emp_code: '', name: '', email: '', join_date: '', password: '',
+        department: '', position: '', bloodGroup: '',
+        reporting_to: []
+      });
+      return true;
+    } catch (err) {
+      console.error("Error adding employee:", err);
+      toast.error("Failed to add employee.");
       return false;
     }
-
-    await addEmployee(newEmployee);
-    toast.success("Employee added successfully!");
-    setNewEmployee({
-      emp_code: '', name: '', email: '', join_date: '', password: '',
-      department: '', position: '', bloodGroup: '',
-      reporting_to: [], proxy_approver: ''
-    });
-    return true;
-  } catch (err) {
-    console.error("Error adding employee:", err);
-    toast.error("Failed to add employee.");
-    return false;
-  }
-};
+  };
 
 
   const handleEmployeeFormSubmit = async (e) => {
-  e.preventDefault();
-  const {
-    emp_code, name, email, join_date, password,
-    department, position, bloodGroup,
-    reporting_to, proxy_approver
-  } = newEmployee;
+    e.preventDefault();
+    const {
+      emp_code, name, email, join_date, password,
+      department, position, bloodGroup,
+      reporting_to
+    } = newEmployee;
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emp_code || !name || !email || !join_date || !password ||
-      !department || !position || !bloodGroup || !confirmPassword ||
-      !proxy_approver) {
-    toast.error("Please fill in all required fields.");
-    return;
-  }
+    if (!emp_code || !name || !email || !join_date || !password ||
+      !department || !position || !bloodGroup || !confirmPassword) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
 
-  if (!emailRegex.test(email)) {
-    toast.error("Enter a valid email address.");
-    return;
-  }
+    if (!emailRegex.test(email)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
 
-  if (!emailRegex.test(proxy_approver)) {
-    toast.error("Enter a valid proxy approver email.");
-    return;
-  }
+    if (!reporting_to.length) {
+      toast.error("Please enter at least one Reporting To email.");
+      return;
+    }
 
-  if (!reporting_to.length) {
-    toast.error("Please enter at least one Reporting To email.");
-    return;
-  }
+    const invalidReports = reporting_to.filter(e => !emailRegex.test(e));
+    if (invalidReports.length) {
+      toast.error(`Invalid Reporting To email(s): ${invalidReports.join(', ')}`);
+      return;
+    }
 
-  const invalidReports = reporting_to.filter(e => !emailRegex.test(e));
-  if (invalidReports.length) {
-    toast.error(`Invalid Reporting To email(s): ${invalidReports.join(', ')}`);
-    return;
-  }
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
 
-  if (password.length < 8) {
-    toast.error("Password must be at least 8 characters.");
-    return;
-  }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    toast.error("Passwords do not match.");
-    return;
-  }
-
-  const success = await handleAddEmployee();
-  if (success) {
-    setNewEmployee({
-      emp_code: '', name: '', email: '', join_date: '', password: '',
-      department: '', position: '', bloodGroup: '',
-      reporting_to: [], proxy_approver: ''
-    });
-    setConfirmPassword('');
-  }
-};
+    const success = await handleAddEmployee();
+    if (success) {
+      setNewEmployee({
+        emp_code: '', name: '', email: '', join_date: '', password: '',
+        department: '', position: '', bloodGroup: '',
+        reporting_to: []
+      });
+      setConfirmPassword('');
+    }
+  };
 
 
   // const filteredRecords = records.filter(record => {
@@ -1035,16 +1029,6 @@ const AdminDashboard = () => {
                   ))}
                 </div>
 
-                {/* Proxy Approval */}
-                <label>Proxy Approval Email</label>
-                <input
-                  type="email"
-                  placeholder="Proxy approval email"
-                  value={newEmployee.proxy_approver}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, proxy_approver: e.target.value })}
-                />
-
-
                 {/* Password Field */}
                 <div style={{ position: "relative", marginBottom: "10px" }}>
                   <input
@@ -1153,6 +1137,17 @@ const AdminDashboard = () => {
                   {bloodGroup.filter(bg => bg !== "").map(bg => (
                     <option key={bg} value={bg}>{bg}</option>
                   ))}
+                </select>
+
+                <select
+                  value={newEmployee.role}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                  required
+                  className="admin-role-dropdown"
+                >
+                  <option value="">Select Role</option>
+                  <option value="employee">Employee</option>
+                  <option value="manager">Manager</option>
                 </select>
 
                 <button type="submit">

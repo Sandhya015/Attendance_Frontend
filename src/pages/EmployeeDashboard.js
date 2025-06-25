@@ -3,7 +3,7 @@ import {
   checkin, checkout, getHistory,
   getLeaveHistory, submitLeaveRequest,
   getEmployeeSummary, getProfile,
-  updateEmployeeProfile,getHolidays
+  updateEmployeeProfile, getHolidays
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -124,6 +124,8 @@ const AttendanceTab = ({ join_date }) => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [attendanceDateTime, setAttendanceDateTime] = useState('');
   const todayStr = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+  const [loading, setLoading] = useState(false);
+
 
   const fetchHistory = async () => {
     try {
@@ -166,6 +168,7 @@ const AttendanceTab = ({ join_date }) => {
             />
             <div className="modal-buttons">
               <button onClick={async () => {
+                setLoading(true);
                 try {
                   await checkin({ datetime: attendanceDateTime });
                   toast.success("Checked in successfully!");
@@ -174,8 +177,13 @@ const AttendanceTab = ({ join_date }) => {
                   setAttendanceDateTime('');
                 } catch (err) {
                   toast.error(err?.response?.data?.msg || "Check-in failed");
+                } finally {
+                  setLoading(false);
                 }
-              }}>Submit</button>
+              }}>
+                Submit
+              </button>
+
               <button className="modal-close" onClick={() => setShowCheckinModal(false)}>Cancel</button>
             </div>
           </div>
@@ -196,6 +204,7 @@ const AttendanceTab = ({ join_date }) => {
             />
             <div className="modal-buttons">
               <button onClick={async () => {
+                setLoading(true);
                 try {
                   await checkout({ datetime: attendanceDateTime });
                   toast.success("Checked out successfully!");
@@ -204,13 +213,26 @@ const AttendanceTab = ({ join_date }) => {
                   setAttendanceDateTime('');
                 } catch (err) {
                   toast.error(err?.response?.data?.msg || "Check-out failed");
+                } finally {
+                  setLoading(false);
                 }
-              }}>Submit</button>
+              }}>
+                Submit
+              </button>
+
               <button className="modal-close" onClick={() => setShowCheckoutModal(false)}>Cancel</button>
             </div>
           </div>
         </div>
+
       )}
+      {loading && (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Processing...</p>
+        </div>
+      )}
+
     </>
   );
 };
@@ -224,6 +246,8 @@ const LeaveTab = () => {
   const perPage = 5;
   const [leaveFromDate, setLeaveFromDate] = useState('');
   const [leaveToDate, setLeaveToDate] = useState('');
+  const [loading, setLoading] = useState(false);
+
 
 
   useEffect(() => {
@@ -234,6 +258,7 @@ const LeaveTab = () => {
 
   const handleLeaveSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // start spinner
     try {
       await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
       toast.success('Leave request submitted');
@@ -248,6 +273,8 @@ const LeaveTab = () => {
       setLeaveHistory(res.data || []);
     } catch {
       toast.error('Failed to submit leave request');
+    } finally {
+      setLoading(false); // stop spinner
     }
   };
 
@@ -255,7 +282,7 @@ const LeaveTab = () => {
   const startIdx = (page - 1) * perPage;
   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
   const totalPages = Math.ceil(leaveHistory.length / perPage);
-  
+
 
   return (
     <div className="leave-tab-grid">
@@ -294,33 +321,33 @@ const LeaveTab = () => {
         </form>
       </div>
       <div className="leave-history-card">
-      <h4>Leave History</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>From</th>
-            <th>To</th>
-            <th>Reason</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pageData.length === 0 ? (
+        <h4>Leave History</h4>
+        <table>
+          <thead>
             <tr>
-              <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
+              <th>From</th>
+              <th>To</th>
+              <th>Reason</th>
+              <th>Status</th>
             </tr>
-          ) : (
-            pageData.map((leave, idx) => (
-              <tr key={idx}>
-                <td>{leave.from_date}</td>
-                <td>{leave.to_date}</td>
-                <td>{leave.reason}</td>
-                <td>{leave.status}</td>
+          </thead>
+          <tbody>
+            {pageData.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              pageData.map((leave, idx) => (
+                <tr key={idx}>
+                  <td>{leave.from_date}</td>
+                  <td>{leave.to_date}</td>
+                  <td>{leave.reason}</td>
+                  <td>{leave.status}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
         {totalPages > 1 && (
           <div className="leave-pagination">
             <button
@@ -341,8 +368,17 @@ const LeaveTab = () => {
           </div>
         )}
       </div>
+      {loading && (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Submitting Leave...</p>
+        </div>
+      )}
     </div>
+
   );
+
+
 };
 
 const holidays = [
@@ -369,26 +405,40 @@ const HolidayTab = () => {
   const [holidays, setHolidays] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 5;
+  const [loading, setLoading] = useState(true); // default to true until data is fetched
+
+
 
   useEffect(() => {
     const fetchHolidays = async () => {
+      setLoading(true); // show loader
       try {
         const res = await getHolidays();
         setHolidays(res.data || []);
       } catch (err) {
         console.error(err);
         toast.error("Failed to load holidays");
+      } finally {
+        setLoading(false); // hide loader
       }
     };
 
     fetchHolidays();
   }, []);
 
+
   const totalPages = Math.ceil(holidays.length / perPage);
   const pageData = holidays.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div className="card holiday-card">
+      {loading && (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Loading Holidays...</p>
+        </div>
+      )}
+
       <h3>Holiday Calendar</h3>
       <table className="holiday-table">
         <thead>
@@ -434,19 +484,25 @@ const HistoryTab = () => {
   const [history, setHistory] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 5;
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await getHistory();
-        setHistory(res.data);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to load attendance history');
-      }
-    };
-    fetchHistory();
-  }, []);
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await getHistory();
+      setHistory(res.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load attendance history');
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchHistory();
+}, []);
+
 
   const formatDateDMY = (dateStr) => {
     if (!dateStr) return '';
@@ -459,12 +515,18 @@ const HistoryTab = () => {
   const pageData = history.slice(startIdx, startIdx + perPage);
   return (
     <div className="card">
-      <h3>Attendance History</h3>
+  <h3>Attendance History</h3>
+
+  {loading ? (
+    <div className="overlay-loader">
+      <div className="spinner"></div>
+      <p>Loading Attendance...</p>
+    </div>
+  ) : (
+    <>
       <table>
         <thead>
-          {/* <tr><th>Date</th><th>Check-in</th><th>Check-out</th></tr> */}
           <tr><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours worked</th><th>Status</th></tr>
-
         </thead>
         <tbody>
           {pageData.length === 0 ? (
@@ -472,8 +534,6 @@ const HistoryTab = () => {
           ) : (
             pageData.map((record, i) => {
               const hours_worked = record.hours_worked;
-
-              // Determine attendance status
               let status = 'Absent';
               if (hours_worked >= 9) status = 'Present';
               else if (hours_worked >= 4) status = 'Half-Day';
@@ -498,10 +558,9 @@ const HistoryTab = () => {
             })
           )}
         </tbody>
-
       </table>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination capsule" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
           <button
@@ -521,95 +580,18 @@ const HistoryTab = () => {
           </button>
         </div>
       )}
-    </div>
+    </>
+  )}
+</div>
   );
 };
-
-
-const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
-  <div className="card profile-view">
-    <div className="profile-avatar-large">👤</div>
-    {!editMode ? (
-      <>
-        <p><strong>Name:</strong> {employee.name}</p>
-        <p><strong>Employee Code:</strong> {employee.emp_code}</p>
-        <p><strong>Email:</strong> {employee.email}</p>
-        <p><strong>Position:</strong> {employee.position}</p>
-        <p><strong>Department:</strong> {employee.department}</p>
-        <p><strong>Blood Group:</strong> {employee.bloodGroup || "-"}</p>
-        <p><strong>Date of Joining:</strong> {formatDateDMY(employee.join_date)}</p>
-        <div className="edit-button-container">
-          <button className="edit-btn" onClick={() => setEditMode(true)}>Edit Profile</button>
-        </div>
-      </>
-    ) : (
-      <form onSubmit={onSave} className="profile-form">
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
-            type="button"
-            className="close-btn"
-            onClick={() => setEditMode(false)}
-            title="Cancel"
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: 18,
-              color: "#888",
-              cursor: "pointer",
-              position: "absolute",
-              right: 16,
-              top: 12,
-            }}
-          >
-            <FaTimes />
-          </button>
-        </div>
-        <label>Name
-          <input type="text" name="name" defaultValue={employee.name} placeholder="Enter your full name" required />
-        </label>
-        <label>Email
-          <input type="email" name="email" defaultValue={employee.email} placeholder="Enter your email address" required />
-        </label>
-        <label>Blood Group
-          <select
-            name="bloodGroup"
-            defaultValue={employee.bloodGroup}
-            required
-            style={{
-              width: "95%",
-              minWidth: 0,
-              fontSize: "1.08rem",
-              padding: "9px 12px",
-              border: "1px solid #ccc",
-              borderRadius: "7px",
-              background: "#fcfcfc",
-              boxSizing: "border-box",
-              marginBottom: "0.3rem",
-              outline: "none",
-              transition: "border-color 0.2s",
-              height: "38px",
-              alignItems: "center",
-            }}
-          >
-            <option value="">Select Blood Group</option>
-            {bloodGroups.filter(bg => bg !== "").map(bg => (
-              <option key={bg} value={bg}>{bg}</option>
-            ))}
-          </select>
-        </label>
-        <div className="modal-buttons">
-          <button type="submit">Update</button>
-        </div>
-      </form>
-    )}
-  </div>
-);
 
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('attendance');
   const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
   const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const leavesLeft = 20 - summary.leavesTaken;
@@ -634,6 +616,8 @@ const EmployeeDashboard = () => {
       email: form.email.value,
       bloodGroup: form.bloodGroup.value,
     };
+
+    setLoading(true); // Start loading
     try {
       await updateEmployeeProfile(updated);
       setEmployee({
@@ -644,8 +628,100 @@ const EmployeeDashboard = () => {
       toast.success('Profile updated successfully');
     } catch (err) {
       toast.error('Update failed');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
+
+
+  const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
+    <div className="card profile-view">
+      <div className="profile-avatar-large">👤</div>
+      {!editMode ? (
+        <>
+          <p><strong>Name:</strong> {employee.name}</p>
+          <p><strong>Employee Code:</strong> {employee.emp_code}</p>
+          <p><strong>Email:</strong> {employee.email}</p>
+          <p><strong>Position:</strong> {employee.position}</p>
+          <p><strong>Department:</strong> {employee.department}</p>
+          <p><strong>Blood Group:</strong> {employee.bloodGroup || "-"}</p>
+          <p><strong>Date of Joining:</strong> {formatDateDMY(employee.join_date)}</p>
+          <div className="edit-button-container">
+            <button className="edit-btn" onClick={() => setEditMode(true)}>Edit Profile</button>
+          </div>
+        </>
+      ) : (
+        <form onSubmit={onSave} className="profile-form">
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="close-btn"
+              onClick={() => setEditMode(false)}
+              title="Cancel"
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 18,
+                color: "#888",
+                cursor: "pointer",
+                position: "absolute",
+                right: 16,
+                top: 12,
+              }}
+            >
+              <FaTimes />
+            </button>
+          </div>
+          <label>Name
+            <input type="text" name="name" defaultValue={employee.name} placeholder="Enter your full name" required />
+          </label>
+          <label>Email
+            <input type="email" name="email" defaultValue={employee.email} placeholder="Enter your email address" required />
+          </label>
+          <label>Blood Group
+            <select
+              name="bloodGroup"
+              defaultValue={employee.bloodGroup}
+              required
+              style={{
+                width: "95%",
+                minWidth: 0,
+                fontSize: "1.08rem",
+                padding: "9px 12px",
+                border: "1px solid #ccc",
+                borderRadius: "7px",
+                background: "#fcfcfc",
+                boxSizing: "border-box",
+                marginBottom: "0.3rem",
+                outline: "none",
+                transition: "border-color 0.2s",
+                height: "38px",
+                alignItems: "center",
+              }}
+            >
+              <option value="">Select Blood Group</option>
+              {bloodGroups.filter(bg => bg !== "").map(bg => (
+                <option key={bg} value={bg}>{bg}</option>
+              ))}
+            </select>
+          </label>
+          <div className="modal-buttons">
+            <button type="submit">Update</button>
+          </div>
+        </form>
+      )}
+      {loading && (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Updating Profile...</p>
+        </div>
+      )}
+
+    </div>
+
+  );
+
+
 
   return (
     <div className="dashboard-container">
@@ -660,7 +736,7 @@ const EmployeeDashboard = () => {
           <SummaryCards summary={summary} leavesLeft={leavesLeft} nextHoliday={nextHoliday} employee={employee} />
           {activeTab === 'attendance' && <AttendanceTab join_date={employee.join_date} />}
           {/* {activeTab === 'dashboard' && <DashboardTab employee={employee} />} */}
-          {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} />}
+          {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} loading={loading} />}
           {activeTab === 'history' && <HistoryTab />}
           {activeTab === 'leave' && <LeaveTab />}
           {activeTab === 'holiday' && <HolidayTab />}

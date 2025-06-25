@@ -52,6 +52,9 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
     </aside>
 );
 
+
+
+
 const TopNavbar = () => (
     <header className="dashboard-navbar">
         <div className="navbar-title">Manager Dashboard</div>
@@ -244,6 +247,7 @@ const AttendanceTab = ({ join_date }) => {
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const [attendanceDateTime, setAttendanceDateTime] = useState('');
     const todayStr = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+    const [loading, setLoading] = useState(false);
 
     const fetchHistory = async () => {
         try {
@@ -252,6 +256,9 @@ const AttendanceTab = ({ join_date }) => {
             toast.error("Failed to fetch attendance history");
         }
     };
+
+
+
 
     const minDateTime = join_date ? `${join_date}T00:00` : '';
     const maxDateTime = todayStr;
@@ -283,6 +290,7 @@ const AttendanceTab = ({ join_date }) => {
                         />
                         <div className="modal-buttons">
                             <button onClick={async () => {
+                                setLoading(true);
                                 try {
                                     await checkin({ datetime: attendanceDateTime });
                                     toast.success("Checked in successfully!");
@@ -291,8 +299,13 @@ const AttendanceTab = ({ join_date }) => {
                                     setAttendanceDateTime('');
                                 } catch (err) {
                                     toast.error(err?.response?.data?.msg || "Check-in failed");
+                                } finally {
+                                    setLoading(false);
                                 }
-                            }}>Submit</button>
+                            }}>
+                                Submit
+                            </button>
+
                             <button className="modal-close" onClick={() => setShowCheckinModal(false)}>Cancel</button>
                         </div>
                     </div>
@@ -313,6 +326,7 @@ const AttendanceTab = ({ join_date }) => {
                         />
                         <div className="modal-buttons">
                             <button onClick={async () => {
+                                setLoading(true);
                                 try {
                                     await checkout({ datetime: attendanceDateTime });
                                     toast.success("Checked out successfully!");
@@ -321,11 +335,23 @@ const AttendanceTab = ({ join_date }) => {
                                     setAttendanceDateTime('');
                                 } catch (err) {
                                     toast.error(err?.response?.data?.msg || "Check-out failed");
+                                } finally {
+                                    setLoading(false);
                                 }
-                            }}>Submit</button>
+                            }}>
+                                Submit
+                            </button>
+
                             <button className="modal-close" onClick={() => setShowCheckoutModal(false)}>Cancel</button>
                         </div>
                     </div>
+
+                </div>
+            )}
+            {loading && (
+                <div className="overlay-loader">
+                    <div className="spinner"></div>
+                    <p>Processing...</p>
                 </div>
             )}
         </>
@@ -760,7 +786,7 @@ const ManagerDashboard = () => {
                 ) : (
                     <table className="team-table">
                         <thead>
-                             <tr style={{ backgroundColor: '#3498db', color: 'white' }}>
+                            <tr style={{ backgroundColor: '#3498db', color: 'white' }}>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Position</th>

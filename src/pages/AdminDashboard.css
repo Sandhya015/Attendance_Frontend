@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
   background: #f5f7fa;
@@ -208,7 +209,8 @@ thead {
   color: white;
 }
 
-th, td {
+th,
+td {
   padding: 12px 18px;
   text-align: center;
   border-bottom: 1px solid #ddd;
@@ -227,6 +229,7 @@ tbody tr:hover {
   margin: 2px;
   cursor: pointer;
 }
+
 .admin-reject-btn {
   background-color: #e74c3c;
   color: white;
@@ -236,9 +239,11 @@ tbody tr:hover {
   margin: 2px;
   cursor: pointer;
 }
+
 .admin-approve-btn:hover {
   background-color: #27ae60;
 }
+
 .admin-reject-btn:hover {
   background-color: #c0392b;
 }
@@ -500,6 +505,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   align-items: center;
   z-index: 999;
 }
+
 .modal-content {
   background: #fff;
   padding: 2rem;
@@ -507,6 +513,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   max-width: 400px;
   width: 100%;
 }
+
 .modal-buttons {
   display: flex;
   justify-content: space-between;
@@ -576,7 +583,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   margin-top: 1.5rem;
 }
 
-.cancel-btn, .save-btn {
+.cancel-btn,
+.save-btn {
   padding: 0.6rem 1.4rem;
   font-size: 0.95rem;
   border-radius: 8px;
@@ -607,6 +615,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     transform: scale(0.95);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -615,7 +624,10 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 .edit-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
@@ -670,7 +682,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 /* Edit Button */
 .admin-edit-employee button:nth-child(1) {
-  background-color: #4caf50; /* green */
+  background-color: #4caf50;
+  /* green */
   color: white;
 }
 
@@ -681,7 +694,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 /* Delete Button */
 .admin-edit-employee button:nth-child(2) {
-  background-color: #f44336; /* red */
+  background-color: #f44336;
+  /* red */
   color: white;
 }
 
@@ -706,18 +720,19 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 .admin-edit-employee table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fafafa;
 }
 
 .admin-edit-employee thead th {
-  background-color: #1d4ed8;
+  background-color: #3498db;
   color: white;
-  padding: 12px;
   font-weight: 600;
-  text-align: left;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  padding: 12px 18px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
 }
 
 .admin-edit-employee tbody td {
@@ -835,7 +850,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -847,7 +862,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   padding: 24px 28px;
   border-radius: 8px;
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   max-width: 320px;
 }
 
@@ -868,7 +883,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   gap: 10px;
 }
 
-.cancel-btn, .confirm-btn {
+.cancel-btn,
+.confirm-btn {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
@@ -927,4 +943,123 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
+}
+
+.biometric-pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.biometric-pagination button {
+  background-color: #3498db;
+  color: white;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.biometric-pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.biometric-pagination span {
+  font-weight: bold;
+  color: #333;
+}
+
+.pagination-classic {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.pagination-classic .page-btn-classic {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #3498db !important;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.pagination-classic .page-btn-classic.next {
+  background-color: #3498db !important;
+}
+
+.pagination-classic .page-btn-classic:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+}
+
+.pagination-classic .page-number {
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+  margin: 0 10px;
+}
+
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pagination-controls button {
+  padding: 5px 10px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+
+.status-present {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-half {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-leave {
+  background-color: #cce5ff;
+  color: #004085;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-absent {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
 }

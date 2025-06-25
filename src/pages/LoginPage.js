@@ -20,6 +20,9 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
   }, [onClose]);
 
 
+  const [loading, setLoading] = useState(false);
+
+
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) =>
@@ -42,6 +45,8 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    setLoading(true); // start loading
     try {
       const res = await axios.post('https://backend-api-corrected-1.onrender.com/auth/login', formData);
       const { token, role, name } = res.data;
@@ -52,8 +57,11 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
       navigate(role === 'admin' ? '/admin' : role === 'manager' ? '/manager' : '/employee');
     } catch (err) {
       setError(err.response?.data?.msg || 'Login failed!');
+    } finally {
+      setLoading(false); // stop loading
     }
   };
+
 
   return (
     <div className="login-slide">
@@ -118,6 +126,13 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
           </div>
         </form>
       </div>
+      {loading && (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Logging in...</p>
+        </div>
+      )}
+
     </div>
   );
 };

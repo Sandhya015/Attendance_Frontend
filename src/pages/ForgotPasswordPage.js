@@ -5,6 +5,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import './ForgotPasswordPage.css';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { FaSpinner } from "react-icons/fa";
+
+
 
 const ForgotPasswordPage = ({ openLoginPopup }) => {
   const [formData, setFormData] = useState({
@@ -16,28 +19,56 @@ const ForgotPasswordPage = ({ openLoginPopup }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const [loading, setLoading] = useState(false);
 
   const handleReset = async (e) => {
     e.preventDefault();
+
     const { new_password, confirm_password } = formData;
     if (new_password !== confirm_password) {
       toast.error('Passwords do not match');
       return;
     }
 
+    setLoading(true); // Start loading
+
     try {
       await axios.post('https://backend-api-corrected-1.onrender.com/auth/forgot-password', {
         email: formData.email,
         new_password: formData.new_password,
       });
+
       toast.success('Password reset successful! Please login.');
       if (openLoginPopup) openLoginPopup();
     } catch (err) {
       toast.error('Reset Failed');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
+
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  // const handleReset = async (e) => {
+  //   e.preventDefault();
+  //   const { new_password, confirm_password } = formData;
+  //   if (new_password !== confirm_password) {
+  //     toast.error('Passwords do not match');
+  //     return;
+  //   }
+
+  //   try {
+  //     await axios.post('https://backend-api-corrected-1.onrender.com/auth/forgot-password', {
+  //       email: formData.email,
+  //       new_password: formData.new_password,
+  //     });
+  //     toast.success('Password reset successful! Please login.');
+  //     if (openLoginPopup) openLoginPopup();
+  //   } catch (err) {
+  //     toast.error('Reset Failed');
+  //   }
+  // };
 
   return (
     <div className="login-slide">
@@ -86,7 +117,10 @@ const ForgotPasswordPage = ({ openLoginPopup }) => {
             onClick={() => setShowConfirmPassword((prev) => !prev)}
           />
         </div>
-        <button type="submit">Reset Password</button>
+        <button type="submit" disabled={loading}>
+          {loading ? <FaSpinner className="spinner" /> : 'Reset Password'}
+        </button>
+
         <div className="extra-links">
           <span
             onClick={openLoginPopup}
@@ -105,6 +139,13 @@ const ForgotPasswordPage = ({ openLoginPopup }) => {
 
         </div>
       </form>
+      {loading && (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Processing...</p>
+        </div>
+      )}
+
     </div>
   );
 };

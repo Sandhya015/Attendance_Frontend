@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   getAllRecords, getAllLeaveRequests,
   updateLeaveStatus, getPendingCheckins,
-  approveCheckin, rejectCheckin, addEmployee
+  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees
 } from '../services/api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,11 +12,8 @@ import { FaChartBar, FaClock, FaUserPlus, FaCalendarAlt, FaFileUpload, FaSignOut
 import logo from '../assets/logooo.jpg'; // Make sure this path is correct
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
-import { FaUserEdit } from 'react-icons/fa';
+import { FaUserEdit, FaFingerprint } from 'react-icons/fa';
 import { getAllHolidays, addHoliday, deleteHoliday } from '../services/api';
-
-
-
 
 
 const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
@@ -24,7 +21,9 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
     <div className="admin-sidebar-logo">Admin</div>
     <ul>
       <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaChartBar /> Attendance</li>
+      <li className={activeTab === 'biometric' ? 'active' : ''} onClick={() => setActiveTab('biometric')}><FaFingerprint /> Biometric Logs</li>
       <li className={activeTab === 'editEmployee' ? 'active' : ''} onClick={() => setActiveTab('editEmployee')}><FaUserEdit /> Edit Employee</li>
+      <li className={activeTab === 'biometricEmployees' ? 'active' : ''} onClick={() => setActiveTab('biometricEmployees')}><FaFingerprint /> Biometric Employees</li>
       <li className={activeTab === 'holidays' ? 'active' : ''} onClick={() => setActiveTab('holidays')}><FaCalendarAlt /> Manage Holidays</li>
       <li className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}><FaClock /> Pending Check-ins</li>
       <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaCalendarAlt /> Leave Requests</li>
@@ -58,7 +57,14 @@ const bloodGroup = [
 const AdminDashboard = () => {
   const [records, setRecords] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [filters, setFilters] = useState({ email: '', fromDate: '', toDate: '' });
+  const [filters, setFilters] = useState({
+    email: '',
+    fromDate: '',
+    toDate: '',
+    date: '',
+    employeeId: '',
+  });
+
   const [activeTab, setActiveTab] = useState('attendance');
   const [pendingCheckins, setPendingCheckins] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,8 +72,64 @@ const AdminDashboard = () => {
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [newEmployee, setNewEmployee] = useState({
-    emp_code: '', name: '', email: '', reporting_to: [], join_date: '', password: '', department: '', position: '', bloodGroup: '',role: ''
+    emp_code: '', name: '', email: '', reporting_to: [], join_date: '', password: '', department: '', position: '', bloodGroup: '', role: ''
   });
+  const indexOfLast = currentPage * recordsPerPage;
+  const indexOfFirst = indexOfLast - recordsPerPage;
+  const [biometricEmployees, setBiometricEmployees] = useState([]);
+  const [loadingBioEmployees, setLoadingBioEmployees] = useState(false);
+
+  const [bioCurrentPage, setBioCurrentPage] = useState(1);
+  const bioPerPage = 10;
+  const bioTotalPages = Math.ceil(biometricEmployees.length / bioPerPage);
+  const bioCurrentEmployees = biometricEmployees.slice(
+    (bioCurrentPage - 1) * bioPerPage,
+    bioCurrentPage * bioPerPage
+  );
+
+
+  const handleSearchBiometricEmployee = async () => {
+    try {
+      const id = searchEmpId.trim();
+      const res = await getBiometricEmployees(id);
+      setBiometricEmployees(res.data || []);
+      setBioCurrentPage(1);
+    } catch (err) {
+      console.error("Search Error:", err);
+      toast.error(err.response?.data?.msg || "Failed to fetch records");
+    }
+  };
+
+
+
+
+
+
+
+  const fetchBiometricEmployees = async () => {
+    setLoadingBioEmployees(true);
+    try {
+      const res = await getBiometricEmployees(searchEmpId);
+      setBiometricEmployees(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch biometric employees", err);
+      toast.error("Failed to fetch biometric employees");
+    } finally {
+      setLoadingBioEmployees(false);
+    }
+  };
+
+
+
+  useEffect(() => {
+    if (activeTab === 'biometricEmployees') {
+      fetchBiometricEmployees();
+    }
+  }, [activeTab]);
+
+
+
+
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -102,6 +164,39 @@ const AdminDashboard = () => {
       console.error('Failed to fetch total employees:', err);
     }
   }, []);
+
+  const [biometricLogs, setBiometricLogs] = useState([]);
+  const [searchEmpId, setSearchEmpId] = useState('');
+  const [searchDate, setSearchDate] = useState('');
+  const currentLogs = biometricLogs.slice(indexOfFirst, indexOfLast);
+
+
+ const fetchBiometricLogs = async (customFilters = filters) => {
+  setLoadingLogs(true); // ← Start loader
+  try {
+    const params = {};
+    if (customFilters.date) params.date = customFilters.date;
+    if (customFilters.employeeId) params.employee_id = customFilters.employeeId;
+
+    const res = await getBiometricLogs(params);
+    setBiometricLogs(res.data || []);
+  } catch (err) {
+    console.error("Failed to fetch biometric logs", err);
+    toast.error("Failed to load biometric logs");
+  } finally {
+    setLoadingLogs(false); // ← Stop loader
+  }
+};
+
+
+
+
+  useEffect(() => {
+    if (activeTab === 'biometric') {
+      handleSearch(); // fetches all logs if no filters are set
+    }
+  }, [activeTab]);
+
 
 
 
@@ -146,19 +241,25 @@ const AdminDashboard = () => {
   };
 
   const [employees, setEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(true);
+
 
   const fetchEmployees = useCallback(async () => {
+    setLoadingEmployees(true); // 👉 Start loading
     try {
       const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/employees', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();
       console.log("Employee API Response:", data);
-      setEmployees(data); // 👈 FIX: set directly from data (it's already an array)
+      setEmployees(data); // 👈 Already correct
     } catch (err) {
       console.error("Failed to fetch employees:", err);
+    } finally {
+      setLoadingEmployees(false); // 👉 End loading
     }
   }, []);
+
 
 
   useEffect(() => {
@@ -332,6 +433,10 @@ const AdminDashboard = () => {
   const leavePerPage = 5;
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [holidayToDelete, setHolidayToDelete] = useState(null);
+  const [loadingHolidays, setLoadingHolidays] = useState(false);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+
 
 
   const totalLeavePages = Math.ceil(leaveRequests.length / leavePerPage);
@@ -339,6 +444,9 @@ const AdminDashboard = () => {
     (leavePage - 1) * leavePerPage,
     leavePage * leavePerPage
   );
+
+
+
 
   useEffect(() => {
     if (activeTab === 'holidays') {
@@ -348,14 +456,18 @@ const AdminDashboard = () => {
 
 
   const fetchHolidays = async () => {
+    setLoadingHolidays(true);
     try {
       const res = await getAllHolidays();
       setHolidays(res.data || []);
     } catch (err) {
       console.error(err);
       toast.error("Error loading holidays");
+    } finally {
+      setLoadingHolidays(false);
     }
   };
+
 
 
 
@@ -390,6 +502,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSearch = async () => {
+    try {
+      const filters = {};
+      if (searchDate) filters.date = searchDate;
+      if (searchEmpId) filters.employee_id = searchEmpId;
+
+      const res = await getBiometricLogs(filters);
+      setBiometricLogs(res.data || []);
+    } catch (err) {
+      toast.error('Failed to search logs');
+    }
+  };
+
+  const currentEmployees = employees.slice(indexOfFirst, indexOfLast);
 
   const handleSelectAll = () => {
     if (selectedCheckins.length === pendingCheckins.length) {
@@ -399,6 +525,14 @@ const AdminDashboard = () => {
       setSelectedCheckins(allIds);
     }
   };
+
+  const handleClearFilters = () => {
+    const cleared = { date: '', employeeId: '' };
+    setFilters(cleared);
+    fetchBiometricLogs(cleared); // explicitly pass cleared filters
+  };
+
+
 
   const handleCheckboxChange = (id) => {
     setSelectedCheckins(prev =>
@@ -501,9 +635,6 @@ const AdminDashboard = () => {
   };
 
 
-
-
-
   return (
     <div className="admin-dashboard-container">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
@@ -592,6 +723,161 @@ const AdminDashboard = () => {
             </>
           )}
 
+          {activeTab === 'biometric' && (
+            <div className="admin-biometric-logs">
+              <h3>Biometric Logs</h3>
+
+              <div className="admin-filter-group">
+                <input
+                  type="date"
+                  value={filters.date || ''}
+                  onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                  placeholder="Filter by Date"
+                />
+                <input
+                  type="number"
+                  placeholder="Filter by Employee ID"
+                  value={filters.employeeId || ''}
+                  onChange={(e) => setFilters({ ...filters, employeeId: e.target.value })}
+                />
+                <button onClick={() => fetchBiometricLogs()} disabled={loadingLogs}>
+                  {loadingLogs ? 'Searching...' : 'Search'}
+                </button>
+
+                <button
+                  onClick={handleClearFilters}
+                  style={{ backgroundColor: '#ccc', marginLeft: '8px' }}
+                  disabled={loadingLogs}
+                >
+                  Clear
+                </button>
+              </div>
+
+              {loadingLogs ? (
+                <div className="overlay-loader">
+                  <div className="spinner"></div>
+                  <p>Loading biometric logs...</p>
+                </div>
+              ) : biometricLogs.length === 0 ? (
+                <p>No biometric records found.</p>
+              ) : (
+                <table className="biometric-logs-table">
+                  <thead>
+                    <tr>
+                      <th>Attendance Date</th>
+                      <th>Employee ID</th>
+                      <th>In Time</th>
+                      <th>Out Time</th>
+                      <th>Duration (Hrs)</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentLogs.map((log, i) => {
+                      const duration = parseFloat(log.DurationHours || 0);
+                      let status = 'Absent';
+                      if (duration >= 9) status = 'Present';
+                      else if (duration >= 4) status = 'Half-Day';
+                      else if (duration > 0) status = 'Full-Day Leave';
+
+                      const statusClass =
+                        status === 'Present'
+                          ? 'status-present'
+                          : status === 'Half-Day'
+                            ? 'status-half'
+                            : status === 'Full-Day Leave'
+                              ? 'status-leave'
+                              : 'status-absent';
+
+                      return (
+                        <tr key={i}>
+                          <td>{log.AttendanceDate}</td>
+                          <td>{log.EmployeeId}</td>
+                          <td>{log.InTime || '—'}</td>
+                          <td>{log.OutTime || '—'}</td>
+                          <td>{log.DurationHours || '—'}</td>
+                          <td><span className={statusClass}>{status}</span></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+
+          {activeTab === 'biometricEmployees' && (
+            <div className="admin-biometric-employees">
+              <h3>Biometric Employees</h3>
+
+              <div className="admin-filter-group">
+                <input
+                  type="number"
+                  placeholder="Search by Employee ID"
+                  value={searchEmpId}
+                  onChange={(e) => setSearchEmpId(e.target.value)}
+                />
+                <button onClick={fetchBiometricEmployees}>Search</button>
+              </div>
+
+              {loadingBioEmployees ? (
+                <div className="overlay-loader">
+                  <div className="spinner"></div>
+                  <p>Loading biometric employees...</p>
+                </div>
+              ) : biometricEmployees.length === 0 ? (
+                <p>No biometric employee records found.</p>
+              ) : (
+                <>
+                  <table className="biometric-employee-table">
+                    <thead>
+                      <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Code</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>DOJ</th>
+                        <th>Designation</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bioCurrentEmployees.map(emp => (
+                        <tr key={emp.EmployeeId}>
+                          <td>{emp.EmployeeId}</td>
+                          <td>{emp.EmployeeCode}</td>
+                          <td>{emp.EmployeeName}</td>
+                          <td>{emp.Gender}</td>
+                          <td>{emp.DOJ}</td>
+                          <td>{emp.Designation || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="pagination-controls">
+                    <button
+                      onClick={() => setBioCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={bioCurrentPage === 1}
+                    >
+                      Previous
+                    </button>
+
+                    <span>Page {bioCurrentPage} of {bioTotalPages}</span>
+
+                    <button
+                      onClick={() => setBioCurrentPage(prev => Math.min(prev + 1, bioTotalPages))}
+                      disabled={bioCurrentPage === bioTotalPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+
           {activeTab === 'holidays' && (
             <div className="admin-manage-holidays">
               <h3>Manage Holidays</h3>
@@ -614,41 +900,46 @@ const AdminDashboard = () => {
                 <button onClick={handleAddHoliday}>Add Holiday</button>
               </div>
 
-              {/* Holiday List Table */}
-              <table className="holiday-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Holiday</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {holidays.length === 0 ? (
-                    <tr><td colSpan="3" style={{ textAlign: 'center' }}>No holidays added yet.</td></tr>
-                  ) : (
-                    holidays.map(holiday => (
-                      <tr key={holiday._id}>
-                        <td>{holiday.date}</td>
-                        <td>{holiday.name}</td>
-                        <td>
-                          <button
-                            className="delete-holiday-btn"
-                            onClick={() => {
-                              setHolidayToDelete(holiday);
-                              setShowConfirmModal(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-
+              {/* Show Loader or Table */}
+              {loadingHolidays ? (
+                <div className="overlay-loader">
+                  <div className="spinner"></div>
+                  <p>Loading holidays...</p>
+                </div>
+              ) : (
+                <table className="holiday-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Holiday</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {holidays.length === 0 ? (
+                      <tr><td colSpan="3" style={{ textAlign: 'center' }}>No holidays added yet.</td></tr>
+                    ) : (
+                      holidays.map(holiday => (
+                        <tr key={holiday._id}>
+                          <td>{holiday.date}</td>
+                          <td>{holiday.name}</td>
+                          <td>
+                            <button
+                              className="delete-holiday-btn"
+                              onClick={() => {
+                                setHolidayToDelete(holiday);
+                                setShowConfirmModal(true);
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
 
@@ -686,40 +977,79 @@ const AdminDashboard = () => {
           {activeTab === 'editEmployee' && (
             <div className="admin-edit-employee">
               <h3>Edit Employee Details</h3>
-              <table>
-                <thead>
-                  <tr><th>Name</th><th>Email</th><th>Department</th><th>Position</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                  {employees && employees.length > 0 ? (
-                    employees.map(emp => (
-                      <tr key={emp._id}>
-                        <td>{emp.name}</td>
-                        <td>{emp.email}</td>
-                        <td>{emp.department}</td>
-                        <td>{emp.position}</td>
-                        <td>
-                          <button onClick={() => openEditModal(emp)}>Edit</button>
-                          <button
-                            onClick={() => setEmployeeToDelete(emp)}
-                            style={{ marginLeft: '10px', backgroundColor: 'red', color: '#fff' }}
-                          >
-                            Delete
-                          </button>
 
-                        </td>
-
-
+              {loadingEmployees ? (
+                <div className="overlay-loader">
+                  <div className="spinner"></div>
+                  <p>Loading employee data...</p>
+                </div>
+              ) : (
+                <div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Position</th>
+                        <th>Actions</th>
                       </tr>
-                    ))
-                  ) : (
-                    <tr><td colSpan="5">No employee data found.</td></tr>
-                  )}
+                    </thead>
+                    <tbody>
+                      {employees && employees.length > 0 ? (
+                        currentEmployees.map(emp => (
+                          <tr key={emp._id}>
+                            <td>{emp.name}</td>
+                            <td>{emp.email}</td>
+                            <td>{emp.department}</td>
+                            <td>{emp.position}</td>
+                            <td>
+                              <button onClick={() => openEditModal(emp)}>Edit</button>
+                              <button
+                                onClick={() => setEmployeeToDelete(emp)}
+                                style={{
+                                  marginLeft: '10px',
+                                  backgroundColor: 'red',
+                                  color: '#fff',
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="5">No employee data found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
 
-                </tbody>
-              </table>
+                  <div className="pagination-classic">
+                    <button
+                      className="page-btn-classic"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    >
+                      Previous
+                    </button>
+
+                    <span className="page-number">{currentPage}</span>
+
+                    <button
+                      className="page-btn-classic next"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+
 
           {editingEmp && (
             <div className="edit-modal-overlay">
@@ -811,9 +1141,6 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
-
-
-
 
 
           {activeTab === 'pending' && (

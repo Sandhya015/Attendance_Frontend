@@ -51,6 +51,23 @@ export const getAllLeaveRequests = () => API.get('/admin/leave-requests');
 export const updateLeaveStatus = (id, status) => API.put(`/admin/leave-requests/${id}`, { status });
 export const addEmployee = (employeeData) => API.post('/admin/add-employee', employeeData);
 export const addManualAttendance = (data) => API.post('/admin/manual-attendance', data);
+// export const getBiometricLogs = () => API.get('/admin/biometric-logs');
+export const getBiometricLogs = (filters) =>
+  API.get('/admin/biometric-logs', filters ? { params: filters } : {});
+// Biometric Employees
+// export const getBiometricEmployees = () => API.get('/admin/employees/biometric');
+// Accept employeeId optionally
+export const getBiometricEmployees = (employeeId) =>
+  API.get('/admin/employees/biometric', {
+    params: employeeId ? { EmployeeId: employeeId } : {},
+  });
+
+
+
+
+
+
+
 // HOLIDAYS
 export const addHoliday = (holidayData) => API.post('/admin/holidays', holidayData);
 export const deleteHoliday = (id) => API.delete(`/admin/holidays/${id}`);

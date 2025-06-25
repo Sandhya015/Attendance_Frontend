@@ -3,6 +3,8 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './ForgotPasswordPage.css';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const ForgotPasswordPage = ({ openLoginPopup }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,9 @@ const ForgotPasswordPage = ({ openLoginPopup }) => {
     new_password: '',
     confirm_password: '',
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,38 +54,54 @@ const ForgotPasswordPage = ({ openLoginPopup }) => {
           value={formData.email}
           onChange={handleChange}
         />
-        <input
-          type="password"
-          name="new_password"
-          placeholder="New Password"
-          required
-          value={formData.new_password}
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          name="confirm_password"
-          placeholder="Confirm Password"
-          required
-          value={formData.confirm_password}
-          onChange={handleChange}
-        />
+        <div className="password-field">
+          <input
+            type={showPassword ? "text" : "password"}
+            name="new_password"
+            placeholder="New Password"
+            required
+            value={formData.new_password}
+            onChange={handleChange}
+          />
+          <FontAwesomeIcon
+            icon={showPassword ? faEyeSlash : faEye}
+            className="eye-icon"
+            onClick={() => setShowPassword((prev) => !prev)}
+          />
+        </div>
+
+        {/* Confirm Password */}
+        <div className="password-field">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            name="confirm_password"
+            placeholder="Confirm Password"
+            required
+            value={formData.confirm_password}
+            onChange={handleChange}
+          />
+          <FontAwesomeIcon
+            icon={showConfirmPassword ? faEyeSlash : faEye}
+            className="eye-icon"
+            onClick={() => setShowConfirmPassword((prev) => !prev)}
+          />
+        </div>
         <button type="submit">Reset Password</button>
         <div className="extra-links">
-        <span
-  onClick={openLoginPopup}
-  style={{
-    cursor: 'pointer',
-    textDecoration: 'underline',
-    color: '#0e1a86',
-    fontWeight: 'bold',
-    display: 'inline-block',
-    marginTop: '15px',
-    fontSize: '16px',
-  }}
->
-  Back to Login
-</span>
+          <span
+            onClick={openLoginPopup}
+            style={{
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              color: '#0e1a86',
+              fontWeight: 'bold',
+              display: 'inline-block',
+              marginTop: '15px',
+              fontSize: '16px',
+            }}
+          >
+            Back to Login
+          </span>
 
         </div>
       </form>

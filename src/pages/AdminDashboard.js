@@ -1183,11 +1183,11 @@ const AdminDashboard = () => {
                   <label>Leaves</label>
                   <input
                     type="number"
-                    value={editingEmp.leaves || ''}
+                    value={editingEmp.leave_balance || ''}
                     onChange={e => {
                       const value = e.target.value;
                       if (!isNaN(value) && Number(value) >= 0) {
-                        setEditingEmp({ ...editingEmp, leaves: Number(value) });
+                        setEditingEmp({ ...editingEmp, leave_balance: Number(value) });
                       }
                     }}
                     min="0"

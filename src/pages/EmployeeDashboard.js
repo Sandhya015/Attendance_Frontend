@@ -55,7 +55,7 @@ const TopNavbar = () => (
 
 
 
-const SummaryCards = ({ summary, leavesLeft, nextHoliday, employee }) => (
+const SummaryCards = ({ summary, nextHoliday, employee }) => (
   <div className="summary-cards">
     <div className="card">
       <h4>Upcoming Holiday</h4>
@@ -66,12 +66,16 @@ const SummaryCards = ({ summary, leavesLeft, nextHoliday, employee }) => (
       </p>
     </div>
     <div className="card">
+      <h4>Total Leaves</h4>
+      <p>{summary.totalAllocated}</p>
+    </div>
+    <div className="card">
       <h4>Leaves Taken</h4>
       <p>{summary.leavesTaken}</p>
     </div>
     <div className="card">
       <h4>Leaves Left</h4>
-      <p>{leavesLeft}</p>
+      <p>{summary.leavesLeft}</p>
     </div>
     <div className="card">
       <h4>Pending Requests</h4>
@@ -87,6 +91,7 @@ const SummaryCards = ({ summary, leavesLeft, nextHoliday, employee }) => (
     </div>
   </div>
 );
+
 
 const DashboardTab = ({ employee }) => {
   const data = {
@@ -404,7 +409,7 @@ const getNextHoliday = () => {
 const HolidayTab = () => {
   const [holidays, setHolidays] = useState([]);
   const [page, setPage] = useState(1);
-  const perPage = 5;
+  const perPage = 7;
   const [loading, setLoading] = useState(true); // default to true until data is fetched
 
 
@@ -588,7 +593,13 @@ const HistoryTab = () => {
 
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('attendance');
-  const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
+const [summary, setSummary] = useState({
+  leavesTaken: 0,
+  leavesLeft: 0,
+  pendingRequests: 0,
+  totalAllocated: 0
+});
+
   const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -600,7 +611,9 @@ const EmployeeDashboard = () => {
 
   useEffect(() => {
     getProfile().then(res => setEmployee(res.data)).catch(() => toast.error('Failed to load profile'));
-    getEmployeeSummary().then(res => setSummary(res.data)).catch(() => toast.error('Failed to load dashboard data'));
+     getEmployeeSummary()
+    .then(res => setSummary(res.data))
+    .catch(() => toast.error('Failed to load dashboard data'));
   }, []);
 
   const handleLogout = () => {
@@ -733,7 +746,7 @@ const EmployeeDashboard = () => {
       <div className="main-area">
         <TopNavbar />
         <main className="main-content">
-          <SummaryCards summary={summary} leavesLeft={leavesLeft} nextHoliday={nextHoliday} employee={employee} />
+          <SummaryCards summary={summary} nextHoliday={nextHoliday} employee={employee} />
           {activeTab === 'attendance' && <AttendanceTab join_date={employee.join_date} />}
           {/* {activeTab === 'dashboard' && <DashboardTab employee={employee} />} */}
           {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} loading={loading} />}

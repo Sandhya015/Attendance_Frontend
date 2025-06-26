@@ -567,7 +567,7 @@ const ApprovalsTab = ({ token }) => {
 const HolidayTab = () => {
     const [holidays, setHolidays] = useState([]);
     const [page, setPage] = useState(1);
-    const perPage = 5;
+    const perPage = 7;
 
     useEffect(() => {
         const fetchHolidays = async () => {

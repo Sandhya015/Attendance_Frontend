@@ -41,14 +41,14 @@ const TopNavbar = () => (
   </header>
 );
 
-const SummaryCards = ({ attendanceStats, leaveRequests, pendingCheckins }) => (
-  <div className="admin-summary-cards">
-    <div className="admin-card"><h4>Pending Check-ins</h4><p>{pendingCheckins.length}</p></div>
-    <div className="admin-card"><h4>Today's Present</h4><p>{attendanceStats.present}</p></div>
-    <div className="admin-card"><h4>Today's On Leave</h4><p>{attendanceStats.leave}</p></div>
-    <div className="admin-card"><h4>Pending Leave Requests</h4><p>{leaveRequests.filter(l => l.status === 'Pending').length}</p></div>
-  </div>
-);
+// const SummaryCards = ({ attendanceStats, leaveRequests, pendingCheckins }) => (
+//   <div className="admin-summary-cards">
+//     <div className="admin-card"><h4>Pending Check-ins</h4><p>{pendingCheckins.length}</p></div>
+//     <div className="admin-card"><h4>Today's Present</h4><p>{attendanceStats.present}</p></div>
+//     <div className="admin-card"><h4>Today's On Leave</h4><p>{attendanceStats.leave}</p></div>
+//     <div className="admin-card"><h4>Pending Leave Requests</h4><p>{leaveRequests.filter(l => l.status === 'Pending').length}</p></div>
+//   </div>
+// );
 
 const bloodGroup = [
   "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('attendance');
   const [pendingCheckins, setPendingCheckins] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage] = useState(5);
+  const [recordsPerPage] = useState(10);
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [newEmployee, setNewEmployee] = useState({
@@ -743,9 +743,9 @@ const AdminDashboard = () => {
                 <button onClick={handleExport}>Export CSV</button>
               </div>
 
-              <div className="admin-summary-section">
+              {/* <div className="admin-summary-section">
                 <SummaryCards attendanceStats={attendanceStats} leaveRequests={leaveRequests} pendingCheckins={pendingCheckins} />
-              </div>
+              </div> */}
 
               <div className="admin-records">
                 <h3>Attendance Records</h3>

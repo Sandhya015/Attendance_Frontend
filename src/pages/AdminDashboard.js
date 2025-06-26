@@ -86,6 +86,16 @@ const AdminDashboard = () => {
     (bioCurrentPage - 1) * bioPerPage,
     bioCurrentPage * bioPerPage
   );
+  const [loadingPending, setLoadingPending] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false); // for button actions
+  const [loadingCheckinId, setLoadingCheckinId] = useState(null); // for individual row
+  const [bulkLoading, setBulkLoading] = useState(false); // for bulk action
+  const [loadingLeaveId, setLoadingLeaveId] = useState(null); // new
+  const [uploading, setUploading] = useState(false);
+  const [addingEmployee, setAddingEmployee] = useState(false);
+
+
+
 
 
   const handleSearchBiometricEmployee = async () => {
@@ -99,11 +109,6 @@ const AdminDashboard = () => {
       toast.error(err.response?.data?.msg || "Failed to fetch records");
     }
   };
-
-
-
-
-
 
 
   const fetchBiometricEmployees = async () => {
@@ -127,6 +132,14 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (activeTab === 'biometric') {
+      setLoadingLogs(true); // Start loading as soon as tab becomes active
+      fetchBiometricLogs(); // It already sets loading false in finally
+    }
+  }, [activeTab]);
+
+
 
 
 
@@ -145,12 +158,39 @@ const AdminDashboard = () => {
   }, [filters.email, filters.fromDate, filters.toDate]);
 
   const fetchLeaveRequests = useCallback(async () => {
-    try { const res = await getAllLeaveRequests(); setLeaveRequests(res.data); } catch (err) { console.error(err); }
+    try {
+      const res = await getAllLeaveRequests();
+      const sorted = (res.data || []).sort(
+        (a, b) => new Date(b.from_date) - new Date(a.from_date)
+      );
+      setLeaveRequests(sorted);
+    } catch (err) {
+      console.error("Failed to fetch leave requests", err);
+      toast.error("Failed to load leave requests");
+    }
   }, []);
 
+
   const fetchPendingCheckins = useCallback(async () => {
-    try { const res = await getPendingCheckins(); setPendingCheckins(res.data); } catch (err) { console.error(err); }
+    setLoadingPending(true); // Start loading
+    try {
+      const res = await getPendingCheckins();
+      setPendingCheckins(res.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch pending check-ins");
+    } finally {
+      setLoadingPending(false); // Stop loading
+    }
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'pending') {
+      fetchPendingCheckins();
+    }
+  }, [activeTab, fetchPendingCheckins]);
+
+
 
   const fetchTotalEmployees = useCallback(async () => {
     try {
@@ -168,7 +208,12 @@ const AdminDashboard = () => {
   const [biometricLogs, setBiometricLogs] = useState([]);
   const [searchEmpId, setSearchEmpId] = useState('');
   const [searchDate, setSearchDate] = useState('');
-  const currentLogs = biometricLogs.slice(indexOfFirst, indexOfLast);
+  const logsPerPage = 10;
+  const [currentPageBiometric, setCurrentPageBiometric] = useState(1); const indexOfLastLog = currentPageBiometric * logsPerPage;
+  const indexOfFirstLog = indexOfLastLog - logsPerPage;
+  const currentLogs = biometricLogs.slice(indexOfFirstLog, indexOfLastLog);
+
+  const totalLogPages = Math.ceil(biometricLogs.length / logsPerPage);
 
 
   const fetchBiometricLogs = async (customFilters = filters) => {
@@ -225,6 +270,7 @@ const AdminDashboard = () => {
   // };
 
   const handleCheckinDecision = async (id, status) => {
+    setLoadingCheckinId(id); // Show loader for the clicked row
     try {
       if (status === 'Rejected') {
         await rejectCheckin(id);
@@ -237,8 +283,11 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Failed to update check-in:", err);
       toast.error("Failed to update check-in.");
+    } finally {
+      setLoadingCheckinId(null); // Reset loading state
     }
   };
+
 
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
@@ -297,15 +346,31 @@ const AdminDashboard = () => {
   };
 
   const handleLeaveDecision = async (id, status) => {
-    try { await updateLeaveStatus(id, status); fetchLeaveRequests(); } catch (err) { console.error('Failed to update leave status:', err); }
+    setLoadingLeaveId(id); // Start loading for this leave ID
+    try {
+      await updateLeaveStatus(id, status);
+      fetchLeaveRequests(); // Refresh list after update
+    } catch (err) {
+      console.error('Failed to update leave status:', err);
+      toast.error('Failed to update leave status.');
+    } finally {
+      setLoadingLeaveId(null); // Stop loading
+    }
   };
+
 
   const handleLogout = () => { localStorage.clear(); navigate('/'); };
 
   const handleUploadAttendance = async () => {
-    if (!fileInputRef.current?.files[0]) return toast.error('Please select a file first!');
+    if (!fileInputRef.current?.files[0]) {
+      toast.error('Please select a file first!');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', fileInputRef.current.files[0]);
+
+    setUploading(true); // Start loading
     try {
       await fetch('https://backend-api-corrected-1.onrender.com/admin/upload-attendance', {
         method: 'POST',
@@ -313,14 +378,18 @@ const AdminDashboard = () => {
         body: formData
       });
       toast.success('Attendance uploaded successfully!');
-      fetchRecords();
+      fetchRecords(); // Refresh the data
     } catch (err) {
       console.error(err);
       toast.error('Failed to upload attendance.');
+    } finally {
+      setUploading(false); // Stop loading
     }
   };
 
+
   const handleAddEmployee = async () => {
+    setAddingEmployee(true);
     try {
       const { name, email, join_date, password, department, position, bloodGroup, emp_code, reporting_to } = newEmployee;
 
@@ -331,18 +400,22 @@ const AdminDashboard = () => {
 
       await addEmployee(newEmployee);
       toast.success("Employee added successfully!");
+
       setNewEmployee({
         emp_code: '', name: '', email: '', join_date: '', password: '',
-        department: '', position: '', bloodGroup: '',
-        reporting_to: []
+        department: '', position: '', bloodGroup: '', reporting_to: [], role: ''
       });
+
       return true;
     } catch (err) {
       console.error("Error adding employee:", err);
       toast.error("Failed to add employee.");
       return false;
+    } finally {
+      setAddingEmployee(false);
     }
   };
+
 
 
   const handleEmployeeFormSubmit = async (e) => {
@@ -560,13 +633,13 @@ const AdminDashboard = () => {
   //     console.error(err);
   //   }
   // };
-
   const handleBulkDecision = async (status) => {
     if (selectedCheckins.length === 0) {
       toast.warning("Select at least one check-in.");
       return;
     }
 
+    setBulkLoading(true);
     try {
       await Promise.all(
         selectedCheckins.map(id =>
@@ -580,6 +653,8 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Bulk operation failed:", err);
       toast.error("Bulk operation failed.");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -789,7 +864,28 @@ const AdminDashboard = () => {
                     })}
                   </tbody>
                 </table>
+
               )}
+              <div className="pagination-classic">
+                <button
+                  className="page-btn-classic"
+                  disabled={currentPageBiometric === 1}
+                  onClick={() => setCurrentPageBiometric(prev => Math.max(prev - 1, 1))}
+                >
+                  Previous
+                </button>
+
+                <span className="page-number">{currentPageBiometric}</span>
+
+                <button
+                  className="page-btn-classic next"
+                  disabled={currentPageBiometric === totalLogPages}
+                  onClick={() => setCurrentPageBiometric(prev => Math.min(prev + 1, totalLogPages))}
+                >
+                  Next
+                </button>
+              </div>
+
             </div>
           )}
 
@@ -1135,8 +1231,20 @@ const AdminDashboard = () => {
               <h3>Pending Check-In Approvals</h3>
 
               <div style={{ marginBottom: '10px' }}>
-                <button className="admin-approve-btn" onClick={() => handleBulkDecision('Accepted')}>Accept Selected</button>
-                <button className="admin-reject-btn" onClick={() => handleBulkDecision('Rejected')}>Reject Selected</button>
+                <button
+                  className="admin-approve-btn"
+                  onClick={() => handleBulkDecision('Accepted')}
+                  disabled={bulkLoading}
+                >
+                  {bulkLoading ? 'Accepting...' : 'Accept Selected'}
+                </button>
+                <button
+                  className="admin-reject-btn"
+                  onClick={() => handleBulkDecision('Rejected')}
+                  disabled={bulkLoading}
+                >
+                  {bulkLoading ? 'Rejecting...' : 'Reject Selected'}
+                </button>
               </div>
 
               <table>
@@ -1146,10 +1254,15 @@ const AdminDashboard = () => {
                       <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <input
                           type="checkbox"
-                          checked={selectedCheckins.length === pendingCheckins.length && pendingCheckins.length > 0}
+                          checked={
+                            selectedCheckins.length === pendingCheckins.length &&
+                            pendingCheckins.length > 0
+                          }
                           onChange={handleSelectAll}
                         />
-                        <span style={{ fontWeight: 'normal', fontSize: '14px' }}>Select All</span>
+                        <span style={{ fontWeight: 'normal', fontSize: '14px' }}>
+                          Select All
+                        </span>
                       </label>
                     </th>
                     <th>Email</th>
@@ -1173,8 +1286,21 @@ const AdminDashboard = () => {
                       <td>{item.date}</td>
                       <td>{item.checkin_time || '—'}</td>
                       <td>
-                        <button className="admin-approve-btn" onClick={() => handleCheckinDecision(item._id, 'Accepted')}>Accept</button>
-                        <button className="admin-reject-btn" onClick={() => handleCheckinDecision(item._id, 'Rejected')}>Reject</button>
+                        <button
+                          className="admin-approve-btn"
+                          onClick={() => handleCheckinDecision(item._id, 'Accepted')}
+                          disabled={loadingCheckinId === item._id}
+                        >
+                          {loadingCheckinId === item._id ? 'Approving...' : 'Accept'}
+                        </button>
+                        <button
+                          className="admin-reject-btn"
+                          onClick={() => handleCheckinDecision(item._id, 'Rejected')}
+                          disabled={loadingCheckinId === item._id}
+                          style={{ marginLeft: '6px' }}
+                        >
+                          {loadingCheckinId === item._id ? 'Rejecting...' : 'Reject'}
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1188,15 +1314,30 @@ const AdminDashboard = () => {
             <>
               <div className="admin-summary-cards">
                 <div className="admin-card total">Total Requests: {leaveRequests.length}</div>
-                <div className="admin-card pending">Pending: {leaveRequests.filter(l => l.status === 'Pending').length}</div>
-                <div className="admin-card accepted">Accepted: {leaveRequests.filter(l => l.status === 'Accepted').length}</div>
-                <div className="admin-card rejected">Rejected: {leaveRequests.filter(l => l.status === 'Rejected').length}</div>
+                <div className="admin-card pending">
+                  Pending: {leaveRequests.filter(l => l.status === 'Pending').length}
+                </div>
+                <div className="admin-card accepted">
+                  Accepted: {leaveRequests.filter(l => l.status === 'Accepted').length}
+                </div>
+                <div className="admin-card rejected">
+                  Rejected: {leaveRequests.filter(l => l.status === 'Rejected').length}
+                </div>
               </div>
+
               <table>
-                <thead><tr><th>Email</th><th>From Date</th><th>To Date</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>From Date</th>
+                    <th>To Date</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {paginatedLeaveRequests.map((leave, i) => (
-
                     <tr key={i}>
                       <td>{leave.email}</td>
                       <td>{leave.from_date}</td>
@@ -1206,8 +1347,21 @@ const AdminDashboard = () => {
                       <td>
                         {leave.status === 'Pending' ? (
                           <>
-                            <button className="admin-approve-btn" onClick={() => handleLeaveDecision(leave._id, 'Accepted')}>Accept</button>
-                            <button className="admin-reject-btn" onClick={() => handleLeaveDecision(leave._id, 'Rejected')}>Reject</button>
+                            <button
+                              className="admin-approve-btn"
+                              onClick={() => handleLeaveDecision(leave._id, 'Accepted')}
+                              disabled={loadingLeaveId === leave._id}
+                            >
+                              {loadingLeaveId === leave._id ? 'Accepting...' : 'Accept'}
+                            </button>
+                            <button
+                              className="admin-reject-btn"
+                              onClick={() => handleLeaveDecision(leave._id, 'Rejected')}
+                              disabled={loadingLeaveId === leave._id}
+                              style={{ marginLeft: '6px' }}
+                            >
+                              {loadingLeaveId === leave._id ? 'Rejecting...' : 'Reject'}
+                            </button>
                           </>
                         ) : '—'}
                       </td>
@@ -1252,7 +1406,10 @@ const AdminDashboard = () => {
                   onChange={(e) => setSelectedFile(e.target.files[0])}
                   style={{ display: 'none' }}
                 />
-                <button onClick={handleUploadAttendance}>Upload</button>
+                <button onClick={handleUploadAttendance} disabled={uploading}>
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+
               </div>
 
               {selectedFile && (
@@ -1464,9 +1621,10 @@ const AdminDashboard = () => {
                   <option value="manager">Manager</option>
                 </select>
 
-                <button type="submit">
-                  Add Employee
+                <button type="submit" disabled={addingEmployee}>
+                  {addingEmployee ? 'Adding...' : 'Add Employee'}
                 </button>
+
               </form>
             </div>
           )}

@@ -171,22 +171,22 @@ const AdminDashboard = () => {
   const currentLogs = biometricLogs.slice(indexOfFirst, indexOfLast);
 
 
- const fetchBiometricLogs = async (customFilters = filters) => {
-  setLoadingLogs(true); // ← Start loader
-  try {
-    const params = {};
-    if (customFilters.date) params.date = customFilters.date;
-    if (customFilters.employeeId) params.employee_id = customFilters.employeeId;
+  const fetchBiometricLogs = async (customFilters = filters) => {
+    setLoadingLogs(true); // ← Start loader
+    try {
+      const params = {};
+      if (customFilters.date) params.date = customFilters.date;
+      if (customFilters.employeeId) params.employee_id = customFilters.employeeId;
 
-    const res = await getBiometricLogs(params);
-    setBiometricLogs(res.data || []);
-  } catch (err) {
-    console.error("Failed to fetch biometric logs", err);
-    toast.error("Failed to load biometric logs");
-  } finally {
-    setLoadingLogs(false); // ← Stop loader
-  }
-};
+      const res = await getBiometricLogs(params);
+      setBiometricLogs(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch biometric logs", err);
+      toast.error("Failed to load biometric logs");
+    } finally {
+      setLoadingLogs(false); // ← Stop loader
+    }
+  };
 
 
 
@@ -774,20 +774,7 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody>
                     {currentLogs.map((log, i) => {
-                      const duration = parseFloat(log.DurationHours || 0);
-                      let status = 'Absent';
-                      if (duration >= 9) status = 'Present';
-                      else if (duration >= 4) status = 'Half-Day';
-                      else if (duration > 0) status = 'Full-Day Leave';
 
-                      const statusClass =
-                        status === 'Present'
-                          ? 'status-present'
-                          : status === 'Half-Day'
-                            ? 'status-half'
-                            : status === 'Full-Day Leave'
-                              ? 'status-leave'
-                              : 'status-absent';
 
                       return (
                         <tr key={i}>
@@ -796,7 +783,7 @@ const AdminDashboard = () => {
                           <td>{log.InTime || '—'}</td>
                           <td>{log.OutTime || '—'}</td>
                           <td>{log.DurationHours || '—'}</td>
-                          <td><span className={statusClass}>{status}</span></td>
+                          <td>{log.Status || '-'}</td>
                         </tr>
                       );
                     })}

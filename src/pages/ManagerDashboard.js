@@ -62,37 +62,41 @@ const TopNavbar = () => (
     </header>
 );
 
-const SummaryCards = ({ summary, leavesLeft, nextHoliday, employee }) => (
-    <div className="summary-cards">
-        <div className="card">
-            <h4>Upcoming Holiday</h4>
-            <p>
-                <small>
-                    {nextHoliday ? `${nextHoliday.date} - ${nextHoliday.name}` : 'No upcoming holiday'}
-                </small>
-            </p>
-        </div>
-        <div className="card">
-            <h4>Leaves Taken</h4>
-            <p>{summary.leavesTaken}</p>
-        </div>
-        <div className="card">
-            <h4>Leaves Left</h4>
-            <p>{leavesLeft}</p>
-        </div>
-        <div className="card">
-            <h4>Pending Requests</h4>
-            <p>{summary.pendingRequests}</p>
-        </div>
-        <div className="card profile-summary-card">
-            <div className="profile-avatar-small">👤</div>
-            <div style={{ marginLeft: 8 }}>
-                <div><strong>{employee.name}</strong></div>
-                <div style={{ fontSize: 13 }}>{employee.email}</div>
-                <div style={{ fontSize: 13 }}>{employee.department} | {employee.position}</div>
-            </div>
-        </div>
+const SummaryCards = ({ summary, nextHoliday, employee }) => (
+  <div className="summary-cards">
+    <div className="card">
+      <h4>Upcoming Holiday</h4>
+      <p>
+        <small>
+          {nextHoliday ? `${nextHoliday.date} - ${nextHoliday.name}` : 'No upcoming holiday'}
+        </small>
+      </p>
     </div>
+    <div className="card">
+      <h4>Total Leaves</h4>
+      <p>{summary.totalAllocated}</p>
+    </div>
+    <div className="card">
+      <h4>Leaves Taken</h4>
+      <p>{summary.leavesTaken}</p>
+    </div>
+    <div className="card">
+      <h4>Leaves Left</h4>
+      <p>{summary.leavesLeft}</p>
+    </div>
+    <div className="card">
+      <h4>Pending Requests</h4>
+      <p>{summary.pendingRequests}</p>
+    </div>
+    <div className="card profile-summary-card">
+      <div className="profile-avatar-small">👤</div>
+      <div style={{ marginLeft: 8 }}>
+        <div><strong>{employee.name}</strong></div>
+        <div style={{ fontSize: 13 }}>{employee.email}</div>
+        <div style={{ fontSize: 13 }}>{employee.department} | {employee.position}</div>
+      </div>
+    </div>
+  </div>
 );
 
 const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
@@ -740,11 +744,16 @@ const getNextHoliday = () => {
 const ManagerDashboard = () => {
     const [activeTab, setActiveTab] = useState('approvals');
     const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
-    const [summary, setSummary] = useState({ leavesTaken: 0, pendingRequests: 0 });
+    const [summary, setSummary] = useState({
+        leavesTaken: 0,
+        leavesLeft: 0,
+        pendingRequests: 0,
+        totalAllocated: 0
+    });
+
     const [editMode, setEditMode] = useState(false);
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
-    const leavesLeft = 20 - summary.leavesTaken;
     const nextHoliday = getNextHoliday();
     const TeamTab = () => {
         const [teamMembers, setTeamMembers] = useState([]);
@@ -810,7 +819,9 @@ const ManagerDashboard = () => {
 
     useEffect(() => {
         getProfile().then(res => setEmployee(res.data)).catch(() => toast.error('Failed to load profile'));
-        getEmployeeSummary().then(res => setSummary(res.data)).catch(() => toast.error('Failed to load dashboard data'));
+        getEmployeeSummary()
+            .then(res => setSummary(res.data))
+            .catch(() => toast.error('Failed to load dashboard data'));
     }, []);
 
     const handleLogout = () => {
@@ -850,12 +861,8 @@ const ManagerDashboard = () => {
             <div className="main-area">
                 <TopNavbar />
                 <main className="main-content">
-                    <SummaryCards
-                        summary={summary}
-                        leavesLeft={leavesLeft}
-                        nextHoliday={nextHoliday}
-                        employee={employee}
-                    />
+                   <SummaryCards summary={summary} employee={employee} nextHoliday={nextHoliday} />
+
                     {activeTab === 'team' && <TeamTab />}
                     {activeTab === 'pendingCheckins' && <ManagerPendingCheckinsTab />}
 

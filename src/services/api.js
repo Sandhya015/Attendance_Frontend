@@ -79,6 +79,9 @@ export const getTeamSummary = () => API.get('/manager/team-summary');
 export const getManagerPendingCheckins = () => API.get('manager/checkins/pending');
 export const approveCheckinByManager = (id) => API.post(`manager/checkins/approve/${id}`);
 export const rejectCheckinByManager = (id) => API.post(`/checkins/reject/${id}`);
+export const getPendingLeaveApprovals = () =>
+  API.get('/leave/pending-approvals');
+
 
 
 

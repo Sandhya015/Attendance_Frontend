@@ -6,7 +6,7 @@ import {
     getEmployeeSummary, getProfile,
     updateEmployeeProfile, getHolidays, getTeamMembers, getTeamSummary, getManagerPendingCheckins,
     approveCheckinByManager,
-    rejectCheckinByManager,
+    rejectCheckinByManager, getPendingLeaveApprovals,
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -485,16 +485,12 @@ const ApprovalsTab = ({ token }) => {
     const [requests, setRequests] = useState([]);
 
     const fetchRequests = async () => {
-        const res = await fetch('https:backend-api-corrected-1.onrender.com/leave/pending-approvals', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        const data = await res.json();
-        if (res.ok) {
-            setRequests(data);
-        } else {
-            alert(data.msg || "Could not load approvals.");
+        try {
+            const res = await getPendingLeaveApprovals();
+            setRequests(res.data || []);
+        } catch (err) {
+            console.error(err);
+            alert("Could not load approvals.");
         }
     };
 

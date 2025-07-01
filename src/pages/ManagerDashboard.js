@@ -499,7 +499,7 @@ const ApprovalsTab = ({ token }) => {
     };
 
     const handleDecision = async (id, action) => {
-        const res = await fetch(`https:backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
+        const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,

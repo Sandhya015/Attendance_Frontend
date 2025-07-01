@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { FaChartBar, FaClock, FaUserPlus, FaCalendarAlt, FaFileUpload, FaSignOutAlt } from 'react-icons/fa';
-import logo from '../assets/logooo.jpg'; // Make sure this path is correct
+import logo from '../assets/logooo.jpg'; 
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { FaUserEdit, FaFingerprint } from 'react-icons/fa';
@@ -41,14 +41,7 @@ const TopNavbar = () => (
   </header>
 );
 
-// const SummaryCards = ({ attendanceStats, leaveRequests, pendingCheckins }) => (
-//   <div className="admin-summary-cards">
-//     <div className="admin-card"><h4>Pending Check-ins</h4><p>{pendingCheckins.length}</p></div>
-//     <div className="admin-card"><h4>Today's Present</h4><p>{attendanceStats.present}</p></div>
-//     <div className="admin-card"><h4>Today's On Leave</h4><p>{attendanceStats.leave}</p></div>
-//     <div className="admin-card"><h4>Pending Leave Requests</h4><p>{leaveRequests.filter(l => l.status === 'Pending').length}</p></div>
-//   </div>
-// );
+
 
 const bloodGroup = [
   "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
@@ -98,17 +91,17 @@ const AdminDashboard = () => {
 
 
 
-  const handleSearchBiometricEmployee = async () => {
-    try {
-      const id = searchEmpId.trim();
-      const res = await getBiometricEmployees(id);
-      setBiometricEmployees(res.data || []);
-      setBioCurrentPage(1);
-    } catch (err) {
-      console.error("Search Error:", err);
-      toast.error(err.response?.data?.msg || "Failed to fetch records");
-    }
-  };
+  // const handleSearchBiometricEmployee = async () => {
+  //   try {
+  //     const id = searchEmpId.trim();
+  //     const res = await getBiometricEmployees(id);
+  //     setBiometricEmployees(res.data || []);
+  //     setBioCurrentPage(1);
+  //   } catch (err) {
+  //     console.error("Search Error:", err);
+  //     toast.error(err.response?.data?.msg || "Failed to fetch records");
+  //   }
+  // };
 
 
   const fetchBiometricEmployees = async () => {
@@ -207,7 +200,7 @@ const AdminDashboard = () => {
 
   const [biometricLogs, setBiometricLogs] = useState([]);
   const [searchEmpId, setSearchEmpId] = useState('');
-  const [searchDate, setSearchDate] = useState('');
+  const [searchDate] = useState('');
   const logsPerPage = 10;
   const [currentPageBiometric, setCurrentPageBiometric] = useState(1); const indexOfLastLog = currentPageBiometric * logsPerPage;
   const indexOfFirstLog = indexOfLastLog - logsPerPage;
@@ -471,15 +464,6 @@ const AdminDashboard = () => {
     }
   };
 
-
-  // const filteredRecords = records.filter(record => {
-  //   const recordDate = record.date;
-  //   let afterFrom = true, beforeTo = true;
-  //   if (filters.fromDate) afterFrom = recordDate >= filters.fromDate;
-  //   if (filters.toDate) beforeTo = recordDate <= filters.toDate;
-  //   return afterFrom && beforeTo;
-  // });
-
   const filteredRecords = records
     .filter(record => {
       const recordDate = record.date;
@@ -602,7 +586,7 @@ const AdminDashboard = () => {
   const handleClearFilters = () => {
     const cleared = { date: '', employeeId: '' };
     setFilters(cleared);
-    fetchBiometricLogs(cleared); // explicitly pass cleared filters
+    fetchBiometricLogs(cleared); 
   };
 
 
@@ -614,25 +598,6 @@ const AdminDashboard = () => {
   };
 
 
-  // const handleBulkDecision = async (status) => {
-  //   if (selectedCheckins.length === 0) {
-  //     toast.warning("Select at least one check-in.");
-  //     return;
-  //   }
-
-  //   try {
-  //     await Promise.all(
-  //       selectedCheckins.map(id => approveCheckin(id, status))
-  //     );
-  //     toast.success(`All selected check-ins ${status.toLowerCase()}ed.`);
-  //     setSelectedCheckins([]);
-  //     fetchPendingCheckins();
-  //     fetchRecords();
-  //   } catch (err) {
-  //     toast.error("Bulk operation failed.");
-  //     console.error(err);
-  //   }
-  // };
   const handleBulkDecision = async (status) => {
     if (selectedCheckins.length === 0) {
       toast.warning("Select at least one check-in.");
@@ -1431,7 +1396,7 @@ const AdminDashboard = () => {
                   value={newEmployee.emp_code}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (/^[a-zA-Z0-9\-]*$/.test(value)) {  // Allow alphanumeric and dash
+                    if (/^[a-zA-Z0-9 \-]*$/.test(value)) {  
                       setNewEmployee({ ...newEmployee, emp_code: value });
                     }
                   }}

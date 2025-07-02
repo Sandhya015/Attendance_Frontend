@@ -184,20 +184,6 @@ const AdminDashboard = () => {
   }, [activeTab, fetchPendingCheckins]);
 
 
-
-  const fetchTotalEmployees = useCallback(async () => {
-    try {
-      const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/total-employees', {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
-      setTotalEmployees(data.total_employees);
-    } catch (err) {
-      console.error('Failed to fetch total employees:', err);
-    }
-  }, []);
-
   const [biometricLogs, setBiometricLogs] = useState([]);
   const [searchEmpId, setSearchEmpId] = useState('');
   const [searchDate] = useState('');
@@ -242,8 +228,8 @@ const AdminDashboard = () => {
     await fetchRecords();
     await fetchLeaveRequests();
     await fetchPendingCheckins();
-    await fetchTotalEmployees();
-  }, [fetchRecords, fetchLeaveRequests, fetchPendingCheckins, fetchTotalEmployees]);
+
+  }, [fetchRecords, fetchLeaveRequests, fetchPendingCheckins]);
 
   const calculateAttendance = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];

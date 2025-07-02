@@ -498,23 +498,48 @@ const ApprovalsTab = ({ token }) => {
         }
     };
 
+    // const handleDecision = async (id, action) => {
+    //     const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
+    //         method: 'POST',
+    //         headers: {
+    //             Authorization: `Bearer ${token}`,
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({ action })
+    //     });
+    //     const data = await res.json();
+    //     if (res.ok) {
+    //         toast.success(data.msg);
+    //         fetchRequests();
+    //     } else {
+    //         toast.error(data.msg || 'Error');
+    //     }
+    // };
+
     const handleDecision = async (id, action) => {
+    try {
         const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ action })
         });
+
         const data = await res.json();
         if (res.ok) {
-            toast.success(data.msg);
-            fetchRequests();
+            toast.success(data.msg || 'Request approved successfully!');
+            fetchRequests(); // Refresh the list
         } else {
-            toast.error(data.msg || 'Error');
+            toast.error(data.msg || `Error: ${res.status}`);
         }
-    };
+    } catch (err) {
+        console.error("Approval failed:", err);
+        toast.error('Network error or server unavailable');
+    }
+};
+
 
     useEffect(() => {
         fetchRequests();

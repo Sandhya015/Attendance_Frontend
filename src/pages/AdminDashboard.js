@@ -285,22 +285,28 @@ const AdminDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
 
+const fetchEmployees = useCallback(async () => {
+  setLoadingEmployees(true);
+  try {
+    const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/employees', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }
+    });
+    const data = await res.json();
+    console.log("Employee API Response:", data);
 
-  const fetchEmployees = useCallback(async () => {
-    setLoadingEmployees(true); // 👉 Start loading
-    try {
-      const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/employees', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
-      console.log("Employee API Response:", data);
-      setEmployees(data); // 👈 Already correct
-    } catch (err) {
-      console.error("Failed to fetch employees:", err);
-    } finally {
-      setLoadingEmployees(false); // 👉 End loading
-    }
-  }, []);
+    // ✅ Since data IS an array
+    setEmployees(data);
+
+  } catch (err) {
+    console.error("Failed to fetch employees:", err);
+  } finally {
+    setLoadingEmployees(false);
+  }
+}, []);
+
+
 
 
 

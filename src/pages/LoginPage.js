@@ -42,22 +42,63 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
     return true;
   };
 
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) return;
+
+  //   setLoading(true); // start loading
+  //   try {
+  //     const res = await axios.post('https://backend-api-corrected-1.onrender.com/auth/login', formData);
+  //     const { token, role, name } = res.data;
+  //     localStorage.setItem('token', token);
+  //     localStorage.setItem('role', role);
+  //     localStorage.setItem('name', name);
+  //     onClose();
+  //     navigate(role === 'admin' ? '/admin' : role === 'manager' ? '/manager' : '/employee');
+  //   } catch (err) {
+  //     setError(err.response?.data?.msg || 'Login failed!');
+  //   } finally {
+  //     setLoading(false); // stop loading
+  //   }
+  // };
+
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setLoading(true); // start loading
+
     try {
-      const res = await axios.post('https://backend-api-corrected-1.onrender.com/auth/login', formData);
-      const { token, role, name } = res.data;
-      localStorage.setItem('token', token);
+      const res = await axios.post(
+        'https://backend-api-corrected-1.onrender.com/auth/login',
+        formData
+      );
+
+      // Use correct keys
+      const { access_token, refresh_token, role, name } = res.data;
+
+      // Save all tokens and info
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('role', role);
       localStorage.setItem('name', name);
-      onClose();
-      navigate(role === 'admin' ? '/admin' : role === 'manager' ? '/manager' : '/employee');
+
+      // onClose();
+
+      navigate(
+        role === 'admin'
+          ? '/admin'
+          : role === 'manager'
+            ? '/manager'
+            : '/employee'
+      );
     } catch (err) {
+      console.error('LOGIN ERROR:', err);
+      console.error('RESPONSE DATA:', err.response?.data);
       setError(err.response?.data?.msg || 'Login failed!');
-    } finally {
+    }
+    finally {
       setLoading(false); // stop loading
     }
   };

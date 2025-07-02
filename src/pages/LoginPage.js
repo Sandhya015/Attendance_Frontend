@@ -84,7 +84,7 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
       localStorage.setItem('role', role);
       localStorage.setItem('name', name);
 
-      // onClose();
+      onClose();
 
       navigate(
         role === 'admin'

@@ -223,6 +223,10 @@ export const getBiometricEmployees = (employeeId) =>
   API.get('/admin/employees/biometric', {
     params: employeeId ? { EmployeeId: employeeId } : {},
   });
+export const getWeeklyLowBiometricHours = (params) =>
+  API.get("/admin/biometric/weekly-underworked", { params });
+
+
 
 /* ============ Holidays ============ */
 export const addHoliday = (holidayData) => API.post('/admin/holidays', holidayData);

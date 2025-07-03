@@ -63,40 +63,40 @@ const TopNavbar = () => (
 );
 
 const SummaryCards = ({ summary, nextHoliday, employee }) => (
-  <div className="summary-cards">
-    <div className="card">
-      <h4>Upcoming Holiday</h4>
-      <p>
-        <small>
-          {nextHoliday ? `${nextHoliday.date} - ${nextHoliday.name}` : 'No upcoming holiday'}
-        </small>
-      </p>
+    <div className="summary-cards">
+        <div className="card">
+            <h4>Upcoming Holiday</h4>
+            <p>
+                <small>
+                    {nextHoliday ? `${nextHoliday.date} - ${nextHoliday.name}` : 'No upcoming holiday'}
+                </small>
+            </p>
+        </div>
+        <div className="card">
+            <h4>Total Leaves</h4>
+            <p>{summary.totalAllocated}</p>
+        </div>
+        <div className="card">
+            <h4>Leaves Taken</h4>
+            <p>{summary.leavesTaken}</p>
+        </div>
+        <div className="card">
+            <h4>Leaves Left</h4>
+            <p>{summary.leavesLeft}</p>
+        </div>
+        <div className="card">
+            <h4>Pending Requests</h4>
+            <p>{summary.pendingRequests}</p>
+        </div>
+        <div className="card profile-summary-card">
+            <div className="profile-avatar-small">👤</div>
+            <div style={{ marginLeft: 8 }}>
+                <div><strong>{employee.name}</strong></div>
+                <div style={{ fontSize: 13 }}>{employee.email}</div>
+                <div style={{ fontSize: 13 }}>{employee.department} | {employee.position}</div>
+            </div>
+        </div>
     </div>
-    <div className="card">
-      <h4>Total Leaves</h4>
-      <p>{summary.totalAllocated}</p>
-    </div>
-    <div className="card">
-      <h4>Leaves Taken</h4>
-      <p>{summary.leavesTaken}</p>
-    </div>
-    <div className="card">
-      <h4>Leaves Left</h4>
-      <p>{summary.leavesLeft}</p>
-    </div>
-    <div className="card">
-      <h4>Pending Requests</h4>
-      <p>{summary.pendingRequests}</p>
-    </div>
-    <div className="card profile-summary-card">
-      <div className="profile-avatar-small">👤</div>
-      <div style={{ marginLeft: 8 }}>
-        <div><strong>{employee.name}</strong></div>
-        <div style={{ fontSize: 13 }}>{employee.email}</div>
-        <div style={{ fontSize: 13 }}>{employee.department} | {employee.position}</div>
-      </div>
-    </div>
-  </div>
 );
 
 const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
@@ -370,6 +370,7 @@ const LeaveTab = () => {
     const perPage = 5;
     const [leaveFromDate, setLeaveFromDate] = useState('');
     const [leaveToDate, setLeaveToDate] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         getLeaveHistory()
@@ -377,22 +378,36 @@ const LeaveTab = () => {
             .catch(() => setLeaveHistory([]));
     }, []);
 
+
+    const isWeekend = (dateString) => {
+        const day = new Date(dateString).getDay();
+        return day === 0 || day === 6; // Sunday=0, Saturday=6
+    };
+
     const handleLeaveSubmit = async (e) => {
         e.preventDefault();
+
+        if (isWeekend(leaveFromDate) || isWeekend(leaveToDate)) {
+            toast.error("Cannot apply leave starting or ending on a weekend.");
+            return;
+        }
+
+        setLoading(true);
         try {
             await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
             toast.success('Leave request submitted');
-
             setLeaveFromDate('');
             setLeaveToDate('');
             setReason('');
-
             const res = await getLeaveHistory();
             setLeaveHistory(res.data || []);
         } catch {
             toast.error('Failed to submit leave request');
+        } finally {
+            setLoading(false);
         }
     };
+
 
     const startIdx = (page - 1) * perPage;
     const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
@@ -430,9 +445,12 @@ const LeaveTab = () => {
                             required
                         />
                     </label>
-                    <button type="submit" className="apply-btn">Apply Leave</button>
+                    <button type="submit" className="apply-btn">
+                        Apply Leave
+                    </button>
                 </form>
             </div>
+
             <div className="leave-history-card">
                 <h4>Leave History</h4>
                 <table>
@@ -441,13 +459,14 @@ const LeaveTab = () => {
                             <th>From</th>
                             <th>To</th>
                             <th>Reason</th>
+                            <th>Type</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {pageData.length === 0 ? (
                             <tr>
-                                <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
+                                <td colSpan={5} style={{ textAlign: 'center' }}>No leave history</td>
                             </tr>
                         ) : (
                             pageData.map((leave, idx) => (
@@ -455,12 +474,41 @@ const LeaveTab = () => {
                                     <td>{leave.from_date}</td>
                                     <td>{leave.to_date}</td>
                                     <td>{leave.reason}</td>
-                                    <td>{leave.status}</td>
+                                    <td>
+                                        <span
+                                            style={{
+                                                display: "inline-block",
+                                                padding: "2px 8px",
+                                                borderRadius: "6px",
+                                                fontSize: "12px",
+                                                color: "white",
+                                                backgroundColor: leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
+                                            }}
+                                        >
+                                            {leave.leave_type || "Paid"}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            style={{
+                                                fontWeight: "bold",
+                                                color:
+                                                    leave.status === "Accepted"
+                                                        ? "#27ae60"
+                                                        : leave.status === "Pending"
+                                                            ? "#f39c12"
+                                                            : "#e74c3c"
+                                            }}
+                                        >
+                                            {leave.status}
+                                        </span>
+                                    </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
+
                 {totalPages > 1 && (
                     <div className="leave-pagination">
                         <button
@@ -481,9 +529,17 @@ const LeaveTab = () => {
                     </div>
                 )}
             </div>
+
+            {loading && (
+                <div className="overlay-loader">
+                    <div className="spinner"></div>
+                    <p>Submitting Leave...</p>
+                </div>
+            )}
         </div>
     );
 };
+
 
 const ApprovalsTab = ({ token }) => {
     const [requests, setRequests] = useState([]);
@@ -517,28 +573,28 @@ const ApprovalsTab = ({ token }) => {
     // };
 
     const handleDecision = async (id, action) => {
-    try {
-        const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ action })
-        });
+        try {
+            const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action })
+            });
 
-        const data = await res.json();
-        if (res.ok) {
-            toast.success(data.msg || 'Request approved successfully!');
-            fetchRequests(); // Refresh the list
-        } else {
-            toast.error(data.msg || `Error: ${res.status}`);
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(data.msg || 'Request approved successfully!');
+                fetchRequests(); // Refresh the list
+            } else {
+                toast.error(data.msg || `Error: ${res.status}`);
+            }
+        } catch (err) {
+            console.error("Approval failed:", err);
+            toast.error('Network error or server unavailable');
         }
-    } catch (err) {
-        console.error("Approval failed:", err);
-        toast.error('Network error or server unavailable');
-    }
-};
+    };
 
 
     useEffect(() => {
@@ -886,7 +942,7 @@ const ManagerDashboard = () => {
             <div className="main-area">
                 <TopNavbar />
                 <main className="main-content">
-                   <SummaryCards summary={summary} employee={employee} nextHoliday={nextHoliday} />
+                    <SummaryCards summary={summary} employee={employee} nextHoliday={nextHoliday} />
 
                     {activeTab === 'team' && <TeamTab />}
                     {activeTab === 'pendingCheckins' && <ManagerPendingCheckinsTab />}

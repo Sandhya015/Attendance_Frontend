@@ -243,6 +243,150 @@ const AttendanceTab = ({ join_date }) => {
 };
 
 
+// const LeaveTab = () => {
+//   const [leaveDate, setLeaveDate] = useState('');
+//   const [reason, setReason] = useState('');
+//   const [leaveHistory, setLeaveHistory] = useState([]);
+//   const [page, setPage] = useState(1);
+//   const perPage = 5;
+//   const [leaveFromDate, setLeaveFromDate] = useState('');
+//   const [leaveToDate, setLeaveToDate] = useState('');
+//   const [loading, setLoading] = useState(false);
+
+
+
+//   useEffect(() => {
+//     getLeaveHistory()
+//       .then(res => setLeaveHistory(res.data || []))
+//       .catch(() => setLeaveHistory([]));
+//   }, []);
+
+//   const handleLeaveSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true); // start spinner
+//     try {
+//       await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
+//       toast.success('Leave request submitted');
+
+//       // Reset fields
+//       setLeaveFromDate('');
+//       setLeaveToDate('');
+//       setReason('');
+
+//       // Refresh leave history
+//       const res = await getLeaveHistory();
+//       setLeaveHistory(res.data || []);
+//     } catch {
+//       toast.error('Failed to submit leave request');
+//     } finally {
+//       setLoading(false); // stop spinner
+//     }
+//   };
+
+
+//   const startIdx = (page - 1) * perPage;
+//   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
+//   const totalPages = Math.ceil(leaveHistory.length / perPage);
+
+
+//   return (
+//     <div className="leave-tab-grid">
+//       <div className="leave-form-card">
+//         <h3>Leave Request Form</h3>
+//         <form className="leave-form" onSubmit={handleLeaveSubmit}>
+//           <label>
+//             Leave From
+//             <input
+//               type="date"
+//               value={leaveFromDate}
+//               onChange={e => setLeaveFromDate(e.target.value)}
+//               required
+//             />
+//           </label>
+//           <label>
+//             Leave To
+//             <input
+//               type="date"
+//               value={leaveToDate}
+//               onChange={e => setLeaveToDate(e.target.value)}
+//               required
+//             />
+//           </label>
+
+//           <label>
+//             Reason
+//             <textarea
+//               value={reason}
+//               onChange={e => setReason(e.target.value)}
+//               placeholder="Enter the reason for leave"
+//               required
+//             />
+//           </label>
+//           <button type="submit" className="apply-btn">Apply Leave</button>
+//         </form>
+//       </div>
+//       <div className="leave-history-card">
+//         <h4>Leave History</h4>
+//         <table>
+//           <thead>
+//             <tr>
+//               <th>From</th>
+//               <th>To</th>
+//               <th>Reason</th>
+//               <th>Status</th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {pageData.length === 0 ? (
+//               <tr>
+//                 <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
+//               </tr>
+//             ) : (
+//               pageData.map((leave, idx) => (
+//                 <tr key={idx}>
+//                   <td>{leave.from_date}</td>
+//                   <td>{leave.to_date}</td>
+//                   <td>{leave.reason}</td>
+//                   <td>{leave.status}</td>
+//                 </tr>
+//               ))
+//             )}
+//           </tbody>
+//         </table>
+//         {totalPages > 1 && (
+//           <div className="leave-pagination">
+//             <button
+//               onClick={() => setPage(p => Math.max(1, p - 1))}
+//               disabled={page === 1}
+//               className="leave-btn"
+//             >
+//               Previous
+//             </button>
+//             <span className="leave-page">{page} / {totalPages}</span>
+//             <button
+//               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+//               disabled={page === totalPages}
+//               className="leave-btn"
+//             >
+//               Next
+//             </button>
+//           </div>
+//         )}
+//       </div>
+//       {loading && (
+//         <div className="overlay-loader">
+//           <div className="spinner"></div>
+//           <p>Submitting Leave...</p>
+//         </div>
+//       )}
+//     </div>
+
+//   );
+
+
+// };
+
+
 const LeaveTab = () => {
   const [leaveDate, setLeaveDate] = useState('');
   const [reason, setReason] = useState('');
@@ -253,41 +397,45 @@ const LeaveTab = () => {
   const [leaveToDate, setLeaveToDate] = useState('');
   const [loading, setLoading] = useState(false);
 
-
-
   useEffect(() => {
     getLeaveHistory()
       .then(res => setLeaveHistory(res.data || []))
       .catch(() => setLeaveHistory([]));
   }, []);
 
-  const handleLeaveSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true); // start spinner
-    try {
-      await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
-      toast.success('Leave request submitted');
+const isWeekend = (dateString) => {
+  const day = new Date(dateString).getDay();
+  return day === 0 || day === 6; // Sunday=0, Saturday=6
+};
 
-      // Reset fields
-      setLeaveFromDate('');
-      setLeaveToDate('');
-      setReason('');
+const handleLeaveSubmit = async (e) => {
+  e.preventDefault();
 
-      // Refresh leave history
-      const res = await getLeaveHistory();
-      setLeaveHistory(res.data || []);
-    } catch {
-      toast.error('Failed to submit leave request');
-    } finally {
-      setLoading(false); // stop spinner
-    }
-  };
+  if (isWeekend(leaveFromDate) || isWeekend(leaveToDate)) {
+    toast.error("Cannot apply leave starting or ending on a weekend.");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
+    toast.success('Leave request submitted');
+    setLeaveFromDate('');
+    setLeaveToDate('');
+    setReason('');
+    const res = await getLeaveHistory();
+    setLeaveHistory(res.data || []);
+  } catch {
+    toast.error('Failed to submit leave request');
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   const startIdx = (page - 1) * perPage;
   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
   const totalPages = Math.ceil(leaveHistory.length / perPage);
-
 
   return (
     <div className="leave-tab-grid">
@@ -312,7 +460,6 @@ const LeaveTab = () => {
               required
             />
           </label>
-
           <label>
             Reason
             <textarea
@@ -322,9 +469,12 @@ const LeaveTab = () => {
               required
             />
           </label>
-          <button type="submit" className="apply-btn">Apply Leave</button>
+          <button type="submit" className="apply-btn">
+            Apply Leave
+          </button>
         </form>
       </div>
+
       <div className="leave-history-card">
         <h4>Leave History</h4>
         <table>
@@ -333,13 +483,14 @@ const LeaveTab = () => {
               <th>From</th>
               <th>To</th>
               <th>Reason</th>
+              <th>Type</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {pageData.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
+                <td colSpan={5} style={{ textAlign: 'center' }}>No leave history</td>
               </tr>
             ) : (
               pageData.map((leave, idx) => (
@@ -347,12 +498,41 @@ const LeaveTab = () => {
                   <td>{leave.from_date}</td>
                   <td>{leave.to_date}</td>
                   <td>{leave.reason}</td>
-                  <td>{leave.status}</td>
+                  <td>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        color: "white",
+                        backgroundColor: leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
+                      }}
+                    >
+                      {leave.leave_type || "Paid"}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        color:
+                          leave.status === "Accepted"
+                            ? "#27ae60"
+                            : leave.status === "Pending"
+                            ? "#f39c12"
+                            : "#e74c3c"
+                      }}
+                    >
+                      {leave.status}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+
         {totalPages > 1 && (
           <div className="leave-pagination">
             <button
@@ -373,6 +553,7 @@ const LeaveTab = () => {
           </div>
         )}
       </div>
+
       {loading && (
         <div className="overlay-loader">
           <div className="spinner"></div>
@@ -380,11 +561,9 @@ const LeaveTab = () => {
         </div>
       )}
     </div>
-
   );
-
-
 };
+
 
 const holidays = [
   { date: '2025-01-26', name: 'Republic Day' },

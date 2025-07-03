@@ -225,6 +225,9 @@ export const getBiometricEmployees = (employeeId) =>
   });
 export const getWeeklyLowBiometricHours = (params) =>
   API.get("/admin/biometric/weekly-underworked", { params });
+export const getWeeklyLowBiometricHoursReport = (params) =>
+  API.get("/admin/biometric/weekly-underworked-report", { params });
+
 
 
 

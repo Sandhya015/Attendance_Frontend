@@ -1,0 +1,1065 @@
+body,
+html {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f7fa;
+  height: 100%;
+  overflow: hidden;
+}
+
+.admin-dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SIDEBAR - Fixed, Always Visible */
+.admin-sidebar {
+  width: 270px;
+  background: #1f2937;
+  color: white;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1001;
+  overflow: hidden;
+}
+
+.admin-sidebar-logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.admin-sidebar ul {
+  padding: 0;
+  margin: 0;
+}
+
+.admin-sidebar ul li {
+  list-style: none;
+  padding: 14px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  background: transparent;
+  letter-spacing: 1px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-sidebar ul li.active,
+.admin-sidebar ul li:hover {
+  background: #6a7999;
+  width: 180px;
+}
+
+.admin-sidebar ul li svg {
+  font-size: 16px;
+  min-width: 20px;
+}
+
+/* MAIN AREA - Scrollable! */
+.admin-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 300px;
+  height: 100vh;
+  overflow-y: auto;
+  background: #f5f7fa;
+}
+
+.admin-dashboard-navbar {
+  height: 90px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.admin-navbar-title {
+  font-size: 1em;
+  color: #000;
+  font-weight: 600;
+  font-weight: 200;
+}
+
+/* Logo at right end */
+.admin-navbar-logo {
+  height: 44px;
+  width: auto;
+  margin-left: auto;
+  margin-right: 0;
+  display: block;
+}
+
+/* MAIN CONTENT */
+.admin-main-content {
+  flex: 1;
+  padding: 2rem;
+  min-height: calc(100vh - 90px);
+  background: #f9f9f9;
+}
+
+/* SUMMARY CARDS */
+.admin-summary-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-card {
+  min-height: 120px;
+  height: 160px;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+  background-color: #eaf5ff;
+  border: 1.5px solid #8ec5f9;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* FILTER GROUP */
+.admin-filter-group {
+  margin: 30px 0;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.admin-filter-group input,
+.admin-filter-group button,
+.admin-filter-group select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+/* Make "Search" and "Export CSV" green and same as before */
+.admin-filter-group button {
+  background-color: #27ae60;
+  color: white;
+  cursor: pointer;
+  min-width: 110px;
+}
+
+.admin-filter-group button:hover {
+  background-color: #219150;
+}
+
+/* TABLES & RECORDS */
+.admin-records,
+.admin-pending-checkins,
+.admin-leave-table,
+.admin-upload-attendance {
+  margin-top: 30px;
+}
+
+.admin-records h3,
+.admin-pending-checkins h3,
+.admin-leave-table h3,
+.admin-upload-attendance h3 {
+  margin-bottom: 15px;
+  font-size: 24px;
+  color: #34495e;
+}
+
+.admin-pending-checkins button {
+  margin-right: 8px;
+}
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fafafa;
+}
+
+thead {
+  background-color: #3498db;
+  color: white;
+}
+
+th,
+td {
+  padding: 12px 18px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+  background-color: #f0f8ff;
+}
+
+.admin-approve-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin: 2px;
+  cursor: pointer;
+}
+
+.admin-reject-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin: 2px;
+  cursor: pointer;
+}
+
+.admin-approve-btn:hover {
+  background-color: #27ae60;
+}
+
+.admin-reject-btn:hover {
+  background-color: #c0392b;
+}
+
+/* UPLOAD ATTENDANCE
+.admin-upload-attendance input[type="file"] {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-upload-attendance button {
+  background-color: #3498db;
+  color: white;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.admin-upload-attendance button:hover {
+  background-color: #2980b9;
+} */
+
+
+.admin-upload-attendance {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 480px;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.admin-upload-attendance h3 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.upload-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.upload-label {
+  display: inline-flex;
+  align-items: center;
+  background-color: #2d8cf0;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-label:hover {
+  background-color: #1c75d8;
+}
+
+.admin-upload-attendance button {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.admin-upload-attendance button:hover {
+  background-color: #27ae60;
+}
+
+.selected-file {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #34495e;
+  word-break: break-word;
+}
+
+
+
+
+/* PAGINATION */
+/* .admin-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.admin-pagination button {
+  padding: 10px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.admin-pagination button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.admin-pagination span {
+  padding: 10px;
+  margin: 0 5px;
+} */
+
+
+.admin-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 30px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.admin-pagination button {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  color: #444;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.admin-pagination button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #bbb;
+  transform: translateY(-1px);
+}
+
+.admin-pagination button:disabled {
+  background-color: #fafafa;
+  color: #aaa;
+  border-color: #eee;
+  cursor: not-allowed;
+}
+
+.admin-pagination span {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+  user-select: none;
+}
+
+
+/* ADD EMPLOYEE */
+.admin-add-employee {
+  width: 100%;
+  max-width: 440px;
+  margin: 30px auto;
+  background-color: #fdfdfd;
+  padding: 30px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.admin-add-employee h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 22px;
+  color: #1e3a8a;
+}
+
+.admin-add-employee input,
+.admin-add-employee select {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+  background: #f5f8ff;
+}
+
+/* Fix select dropdown width to match inputs */
+.admin-blood-dropdown {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  background: #fff;
+}
+
+.admin-add-employee input:focus,
+.admin-add-employee select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.admin-add-employee label {
+  align-self: flex-start;
+  margin: 0 0 4px 2px;
+  font-size: 14px;
+  color: #444;
+}
+
+.admin-add-employee button {
+  width: 100%;
+  padding: 12px;
+  background-color: #191970;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.admin-add-employee button:hover {
+  background-color: #1e40af;
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+}
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.edit-modal {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+.edit-modal h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #222;
+  font-size: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  color: #444;
+  margin-bottom: 0.4rem;
+}
+
+.form-group input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancel-btn,
+.save-btn {
+  padding: 0.6rem 1.4rem;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+
+.cancel-btn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background: #c9c9c9;
+}
+
+.save-btn {
+  background: #007bff;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background: #0056b3;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.edit-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+}
+
+.cancel-btn,
+.delete-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+}
+
+.delete-btn {
+  background-color: red;
+  color: white;
+}
+
+
+.admin-edit-employee button {
+  padding: 6px 14px;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-right: 6px;
+}
+
+/* Edit Button */
+.admin-edit-employee button:nth-child(1) {
+  background-color: #4caf50;
+  /* green */
+  color: white;
+}
+
+.admin-edit-employee button:nth-child(1):hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+/* Delete Button */
+.admin-edit-employee button:nth-child(2) {
+  background-color: #f44336;
+  /* red */
+  color: white;
+}
+
+.admin-edit-employee button:nth-child(2):hover {
+  background-color: #d32f2f;
+  transform: scale(1.05);
+}
+
+.admin-edit-employee {
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 10px;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.admin-edit-employee h3 {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.admin-edit-employee table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fafafa;
+}
+
+.admin-edit-employee thead th {
+  background-color: #3498db;
+  color: white;
+  font-weight: 600;
+  padding: 12px 18px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-edit-employee tbody td {
+  background-color: #f9fafb;
+  padding: 14px 12px;
+  color: #333;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-edit-employee tbody tr {
+  transition: background-color 0.2s;
+}
+
+.admin-edit-employee tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-edit-employee button {
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.admin-edit-employee button:first-child {
+  background-color: #22c55e;
+  color: white;
+}
+
+.admin-edit-employee button:first-child:hover {
+  background-color: #16a34a;
+}
+
+.admin-edit-employee button:last-child {
+  background-color: #ef4444;
+  color: white;
+  margin-left: 8px;
+}
+
+.admin-edit-employee button:last-child:hover {
+  background-color: #dc2626;
+}
+
+.admin-manage-holidays {
+  padding: 24px;
+  background-color: #f9fbfd;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+}
+
+.admin-manage-holidays h3 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.add-holiday-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.add-holiday-form input[type="date"],
+.add-holiday-form input[type="text"] {
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  flex: 1;
+  min-width: 180px;
+  background-color: #fff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.add-holiday-form button {
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-holiday-form button:hover {
+  background-color: #1d4ed8;
+}
+
+.delete-holiday-btn {
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.delete-holiday-btn:hover {
+  background-color: #c62828;
+}
+
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.confirm-modal {
+  background: white;
+  padding: 24px 28px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  max-width: 320px;
+}
+
+.confirm-modal h4 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.confirm-modal p {
+  margin-bottom: 20px;
+  font-size: 15px;
+  color: #555;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.confirm-btn {
+  background-color: #e53935;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #c62828;
+}
+
+.cancel-btn:hover {
+  background-color: #b0b0b0;
+}
+
+.email-tags {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.email-tag {
+  background: #e0f0ff;
+  color: #0077cc;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
+.email-tag button {
+  background: transparent;
+  border: none;
+  margin-left: 6px;
+  color: #0077cc;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.admin-role-dropdown {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.biometric-pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.biometric-pagination button {
+  background-color: #3498db;
+  color: white;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.biometric-pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.biometric-pagination span {
+  font-weight: bold;
+  color: #333;
+}
+
+.pagination-classic {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.pagination-classic .page-btn-classic {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #3498db !important;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.pagination-classic .page-btn-classic.next {
+  background-color: #3498db !important;
+}
+
+.pagination-classic .page-btn-classic:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+}
+
+.pagination-classic .page-number {
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+  margin: 0 10px;
+}
+
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pagination-controls button {
+  padding: 5px 10px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+
+.status-present {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-half {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-leave {
+  background-color: #cce5ff;
+  color: #004085;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-absent {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}

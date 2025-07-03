@@ -152,7 +152,7 @@ API.interceptors.response.use(
         localStorage.removeItem('user_role');
 
         // Redirect to login
-        window.location.href = '/login';
+        window.location.href = '/';
       }
     }
 

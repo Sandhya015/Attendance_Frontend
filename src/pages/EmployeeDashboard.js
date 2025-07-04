@@ -486,8 +486,6 @@ const LeaveTab = () => {
 
 // };
 
- return (
-  <>
     <div className="leave-history-card">
       <h4>Leave History</h4>
       <table>
@@ -590,8 +588,10 @@ const LeaveTab = () => {
         <p>{loading ? "Processing..." : ""}</p>
       </div>
     )}
-  </>
-);
+  </div>
+  );
+ };
+
 
 
 const holidays = [

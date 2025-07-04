@@ -486,103 +486,111 @@ const LeaveTab = () => {
 
 // };
 
-  <div className="leave-history-card">
-  <h4>Leave History</h4>
-  <table>
-    <thead>
-      <tr>
-        <th>From</th>
-        <th>To</th>
-        <th>Reason</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {pageData.length === 0 ? (
-        <tr>
-          <td colSpan={6} style={{ textAlign: 'center' }}>No leave history</td>
-        </tr>
-      ) : (
-        pageData.map((leave, idx) => (
-          <tr key={idx}>
-            <td>{leave.from_date}</td>
-            <td>{leave.to_date}</td>
-            <td>{leave.reason}</td>
-            <td>
-              <span
-                style={{
-                  display: "inline-block",
-                  padding: "2px 8px",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                  color: "white",
-                  backgroundColor: leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
-                }}
-              >
-                {leave.leave_type || "Paid"}
-              </span>
-            </td>
-            <td>
-              <span
-                style={{
-                  fontWeight: "bold",
-                  color:
-                    leave.status === "Accepted"
-                      ? "#27ae60"
-                      : leave.status === "Pending"
-                      ? "#f39c12"
-                      : "#e74c3c"
-                }}
-              >
-                {leave.status}
-              </span>
-            </td>
-            <td>
-              {leave.status === "Pending" && (
-                <button
-                  className="withdraw-btn"
-                  onClick={() => handleWithdraw(leave.id)}
-                  disabled={loading}
-                >
-                  Withdraw
-                </button>
-              )}
-            </td>
+ return (
+  <>
+    <div className="leave-history-card">
+      <h4>Leave History</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Reason</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Action</th>
           </tr>
-        ))
+        </thead>
+        <tbody>
+          {pageData.length === 0 ? (
+            <tr>
+              <td colSpan={6} style={{ textAlign: 'center' }}>
+                No leave history
+              </td>
+            </tr>
+          ) : (
+            pageData.map((leave, idx) => (
+              <tr key={idx}>
+                <td>{leave.from_date}</td>
+                <td>{leave.to_date}</td>
+                <td>{leave.reason}</td>
+                <td>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      padding: "2px 8px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      color: "white",
+                      backgroundColor:
+                        leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
+                    }}
+                  >
+                    {leave.leave_type || "Paid"}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    style={{
+                      fontWeight: "bold",
+                      color:
+                        leave.status === "Accepted"
+                          ? "#27ae60"
+                          : leave.status === "Pending"
+                          ? "#f39c12"
+                          : "#e74c3c"
+                    }}
+                  >
+                    {leave.status}
+                  </span>
+                </td>
+                <td>
+                  {leave.status === "Pending" && (
+                    <button
+                      className="withdraw-btn"
+                      onClick={() => handleWithdraw(leave.id)}
+                      disabled={loading}
+                    >
+                      Withdraw
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {totalPages > 1 && (
+        <div className="leave-pagination">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="leave-btn"
+          >
+            Previous
+          </button>
+          <span className="leave-page">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="leave-btn"
+          >
+            Next
+          </button>
+        </div>
       )}
-    </tbody>
-  </table>
-
-  {totalPages > 1 && (
-    <div className="leave-pagination">
-      <button
-        onClick={() => setPage(p => Math.max(1, p - 1))}
-        disabled={page === 1}
-        className="leave-btn"
-      >
-        Previous
-      </button>
-      <span className="leave-page">{page} / {totalPages}</span>
-      <button
-        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-        disabled={page === totalPages}
-        className="leave-btn"
-      >
-        Next
-      </button>
     </div>
-  )}
-</div>
 
-{loading && (
-  <div className="overlay-loader">
-    <div className="spinner"></div>
-    <p>{loading ? 'Processing...' : ''}</p>
-  </div>
-)}
+    {loading && (
+      <div className="overlay-loader">
+        <div className="spinner"></div>
+        <p>{loading ? "Processing..." : ""}</p>
+      </div>
+    )}
+  </>
 );
 
 

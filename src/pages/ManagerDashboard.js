@@ -178,7 +178,7 @@ const ProfileTab = ({ employee, setEditMode, editMode, onSave }) => (
     </div>
 );
 
-
+// ManagerPendingCheckinsTab component to handle pending check-ins
 const ManagerPendingCheckinsTab = () => {
     const [pendingCheckins, setPendingCheckins] = useState([]);
 

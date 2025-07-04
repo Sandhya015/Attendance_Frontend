@@ -767,7 +767,7 @@ h1 {
   100% { transform: rotate(360deg); }
 }
 
-
+/* Withdraw Leave Button */
 .withdraw-btn {
   background-color: #43a047;      /* Green shade */
   color: #fff;

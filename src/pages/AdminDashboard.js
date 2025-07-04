@@ -671,8 +671,8 @@ const handleWeeklyReport = async () => {
 
 
   const handleDeleteEmployee = async (empId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this employee?");
-    if (!confirmDelete) return;
+    // const confirmDelete = window.confirm("Are you sure you want to delete this employee?");
+    // if (!confirmDelete) return;
 
     try {
       await API.delete(`/admin/employees/${empId}`);

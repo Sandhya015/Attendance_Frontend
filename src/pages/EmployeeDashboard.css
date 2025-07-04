@@ -769,24 +769,26 @@ h1 {
 
 
 .withdraw-btn {
-  background-color: #43a047;      /* Green shade */
-  color: #fff;
+  padding: 6px 12px;
   border: none;
-  border-radius: 999px;           /* Capsule shape */
-  padding: 8px 22px;
-  font-size: 1rem;
-  cursor: pointer;
+  border-radius: 6px;
+  background-color: #e74c3c;
+  color: #fff;
+  font-size: 13px;
   font-weight: 500;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 3px rgba(67,160,71,0.08);
-  outline: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
-.withdraw-btn:hover:not(:disabled) {
-  background-color: #388e3c;
-  box-shadow: 0 2px 8px rgba(67,160,71,0.18);
+
+.withdraw-btn:hover {
+  background-color: #c0392b;
 }
+
 .withdraw-btn:disabled {
-  background: #c8e6c9;
-  color: #a5d6a7;
+  background-color: #ccc;
   cursor: not-allowed;
+}
+
+.withdraw-btn:active {
+  transform: scale(0.96);
 }

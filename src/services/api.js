@@ -203,6 +203,7 @@ export const getProfile = () => API.get('/employee/profile');
 export const updateEmployeeProfile = (updatedData) =>
   API.put('/employee/update-profile', updatedData);
 
+
 /* ============ Admin ============ */
 export const checkAdminExists = () => API.get('/admin/check');
 export const getAllRecords = (filters) =>
@@ -244,6 +245,9 @@ export const rejectCheckinByManager = (id) =>
 export const getPendingLeaveApprovals = () => API.get('/leave/pending-approvals');
 
 export const withdrawLeaveRequest = (leaveId) =>
-  API.post(`/leave/withdraw/${leaveId}`);
+  API.delete(`/leave/withdraw/${leaveId}`);
+export const getTeamLeaveHistory = () => API.get('/manager/team/leave-history');
+
+
 
 export default API;

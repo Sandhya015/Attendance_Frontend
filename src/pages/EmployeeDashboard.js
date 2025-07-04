@@ -375,6 +375,7 @@ const LeaveTab = () => {
     }
   };
 
+
   const startIdx = (page - 1) * perPage;
   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
   const totalPages = Math.ceil(leaveHistory.length / perPage);
@@ -422,6 +423,7 @@ const LeaveTab = () => {
               <th>From</th>
               <th>To</th>
               <th>Reason</th>
+              <th>Type</th>   {/* Added Leave Type column */}
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -429,7 +431,7 @@ const LeaveTab = () => {
           <tbody>
             {pageData.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center' }}>No leave history</td>
+                <td colSpan={6} style={{ textAlign: 'center' }}>No leave history</td>
               </tr>
             ) : (
               pageData.map((leave, idx) => (
@@ -437,23 +439,53 @@ const LeaveTab = () => {
                   <td>{leave.from_date}</td>
                   <td>{leave.to_date}</td>
                   <td>{leave.reason}</td>
-                  <td>{leave.status}</td>
+                  <td>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        color: "#fff",
+                        backgroundColor: leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
+                      }}
+                    >
+                      {leave.leave_type || "Paid"}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        color:
+                          leave.status === "Accepted"
+                            ? "#27ae60"
+                            : leave.status === "Pending"
+                              ? "#f39c12"
+                              : "#e74c3c"
+                      }}
+                    >
+                      {leave.status}
+                    </span>
+                  </td>
                   <td>
                     {leave.status === "Pending" && (
                       <button
                         className="withdraw-btn"
-                        onClick={() => handleWithdraw(leave.id)}
+                        onClick={() => handleWithdraw(leave._id)}
                         disabled={loading}
                       >
                         Withdraw
                       </button>
                     )}
+
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+
         {totalPages > 1 && (
           <div className="leave-pagination">
             <button
@@ -474,6 +506,7 @@ const LeaveTab = () => {
           </div>
         )}
       </div>
+
       {loading && (
         <div className="overlay-loader">
           <div className="spinner"></div>

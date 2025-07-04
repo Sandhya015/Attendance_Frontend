@@ -6,7 +6,7 @@ import {
     getEmployeeSummary, getProfile,
     updateEmployeeProfile, getHolidays, getTeamMembers, getTeamSummary, getManagerPendingCheckins,
     approveCheckinByManager,
-    rejectCheckinByManager, getPendingLeaveApprovals, withdrawLeaveRequest,
+    rejectCheckinByManager, getPendingLeaveApprovals, withdrawLeaveRequest, getTeamLeaveHistory
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -45,6 +45,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
             <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><FaUser /> Profile</li>
             <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaRegCalendarAlt /> Leave Request</li>
             <li className={activeTab === 'approvals' ? 'active' : ''} onClick={() => setActiveTab('approvals')}><FaRegCalendarAlt /> Leave Approvals</li>
+            <li className={activeTab === 'teamLeaveHistory' ? 'active' : ''} onClick={() => setActiveTab('teamLeaveHistory')}><FaUsers /> Team Leave History</li>
             <li className={activeTab === 'holiday' ? 'active' : ''} onClick={() => setActiveTab('holiday')}><FaCalendarAlt /> Holiday Calendar</li>
             <li className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}><FaHistory /> Attendance History</li>
             <li onClick={handleLogout}><FaSignOutAlt /> Logout</li>
@@ -400,6 +401,8 @@ const LeaveTab = () => {
         }
     };
 
+    
+
     // Withdraw leave handler
     const handleWithdraw = async (leaveId) => {
         setLoading(true);
@@ -525,6 +528,137 @@ const LeaveTab = () => {
     );
 
 
+};
+
+
+const TeamLeaveHistoryTab = () => {
+  const [leaveHistory, setLeaveHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const perPage = 5;
+
+  useEffect(() => {
+    fetchLeaveHistory();
+  }, []);
+
+  const fetchLeaveHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await getTeamLeaveHistory();
+      if (Array.isArray(res.data)) {
+        setLeaveHistory(res.data);
+      } else {
+        toast.info(res.data.message || "No team leave history found.");
+        setLeaveHistory([]);
+      }
+    } catch (err) {
+      toast.error("Failed to load team leave history.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startIdx = (page - 1) * perPage;
+  const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
+  const totalPages = Math.ceil(leaveHistory.length / perPage);
+
+  return (
+    <div className="team-leave-history">
+      <h3>Team Leave History</h3>
+      {loading ? (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Loading leave history...</p>
+        </div>
+      ) : (
+        <>
+          <table className="team-leave-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Email</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Reason</th>
+                <th>Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageData.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center" }}>
+                    No leave records found.
+                  </td>
+                </tr>
+              ) : (
+                pageData.map((leave, idx) => (
+                  <tr key={idx}>
+                    <td>{leave.employee_name}</td>
+                    <td>{leave.email}</td>
+                    <td>{leave.from_date}</td>
+                    <td>{leave.to_date}</td>
+                    <td>{leave.reason}</td>
+                    <td>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          color: "white",
+                          backgroundColor:
+                            leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
+                        }}
+                      >
+                        {leave.leave_type}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        style={{
+                          fontWeight: "bold",
+                          color:
+                            leave.status === "Accepted"
+                              ? "#27ae60"
+                              : leave.status === "Pending"
+                              ? "#f39c12"
+                              : "#e74c3c"
+                        }}
+                      >
+                        {leave.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {totalPages > 1 && (
+            <div className="leave-pagination">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="leave-btn"
+              >
+                Previous
+              </button>
+              <span className="leave-page">
+                {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="leave-btn"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 const ApprovalsTab = ({ token }) => {
@@ -922,6 +1056,7 @@ const ManagerDashboard = () => {
                     />}
                     {activeTab === 'leave' && <LeaveTab />}
                     {activeTab === 'approvals' && <ApprovalsTab token={token} />}
+                    {activeTab === "teamLeaveHistory" && <TeamLeaveHistoryTab />}
                     {activeTab === 'holiday' && <HolidayTab />}
                     {activeTab === 'history' && <HistoryTab />}
                     <ToastContainer />

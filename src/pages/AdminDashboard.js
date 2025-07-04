@@ -1217,7 +1217,7 @@ const handleWeeklyReport = async () => {
                   />
                 </div>
 
-                <div className="form-group">
+                {/* <div className="form-group">
                   <label>Leaves</label>
                   <input
                     type="number"
@@ -1231,7 +1231,7 @@ const handleWeeklyReport = async () => {
                     min="0"
                     required
                   />
-                </div>
+                </div> */}
 
 
                 <div className="modal-actions">

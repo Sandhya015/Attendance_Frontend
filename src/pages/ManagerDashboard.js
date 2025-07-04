@@ -8,6 +8,7 @@ import {
     approveCheckinByManager,
     rejectCheckinByManager, getPendingLeaveApprovals, withdrawLeaveRequest, getTeamLeaveHistory
 } from '../services/api';
+import API from '../services/api'; 
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -674,23 +675,20 @@ const ApprovalsTab = ({ token }) => {
         }
     };
 
-    const handleDecision = async (id, action) => {
-        const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ action })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            toast.success(data.msg);
-            fetchRequests();
-        } else {
-            toast.error(data.msg || 'Error');
-        }
-    };
+   const handleDecision = async (id, action) => {
+  try {
+    const res = await API.post(`/leave/approve/${id}`, { action });
+    toast.success(res.data?.msg || 'Action successful.');
+    fetchRequests();
+  } catch (err) {
+    console.error('Error approving leave:', err);
+    const msg =
+      err.response?.data?.msg ||
+      err.response?.data?.error ||
+      'Failed to process leave request.';
+    toast.error(msg);
+  }
+};
 
     useEffect(() => {
         fetchRequests();

@@ -580,7 +580,6 @@ const LeaveTab = () => {
           </button>
         </div>
       )}
-    </div>
 
     {loading && (
       <div className="overlay-loader">

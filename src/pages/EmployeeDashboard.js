@@ -3,7 +3,7 @@ import {
   checkin, checkout, getHistory,
   getLeaveHistory, submitLeaveRequest,
   getEmployeeSummary, getProfile,
-  updateEmployeeProfile, getHolidays
+  updateEmployeeProfile, getHolidays, withdrawLeaveRequest
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -124,40 +124,70 @@ const DashboardTab = ({ employee }) => {
 
 
 
+
 const AttendanceTab = ({ join_date }) => {
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [attendanceDateTime, setAttendanceDateTime] = useState('');
+  const [attendanceDateTime, setAttendanceDateTime] = useState("");
   const todayStr = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
   const [loading, setLoading] = useState(false);
+  const [lastCheckinTime, setLastCheckinTime] = useState("");
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
 
+  // Load last check-in date on mount
+  useEffect(() => {
+    const storedDate = localStorage.getItem("lastCheckinDate");
+    const todayDateStr = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+    if (storedDate === todayDateStr) {
+      setIsCheckedIn(true);
+      const storedDateTime = localStorage.getItem("lastCheckinDateTime");
+      if (storedDateTime) {
+        setLastCheckinTime(storedDateTime);
+      }
+    } else {
+      setIsCheckedIn(false);
+    }
+  }, []);
 
   const fetchHistory = async () => {
     try {
       await getHistory();
-      // Optionally reload UI state here
     } catch (err) {
       toast.error("Failed to fetch attendance history");
     }
   };
 
-  const minDateTime = join_date ? `${join_date}T00:00` : '';
+  const minDateTime = join_date ? `${join_date}T00:00` : "";
   const maxDateTime = todayStr;
 
   return (
     <>
       <div className="attendance-modern">
-        <div className="action-card" onClick={() => setShowCheckinModal(true)}>
+        <div
+          className="action-card"
+          onClick={() => {
+            if (isCheckedIn) {
+              toast.info(
+                "You have already checked in today. You can only check in once per day."
+              );
+              return;
+            }
+            setShowCheckinModal(true);
+          }}
+        >
           <img src={checkinImg} alt="Check In" className="action-img" />
           <button className="modern-btn">Check In</button>
         </div>
-        <div className="action-card" onClick={() => setShowCheckoutModal(true)}>
+
+        <div
+          className="action-card"
+          onClick={() => setShowCheckoutModal(true)}
+        >
           <img src={checkoutImg} alt="Check Out" className="action-img" />
           <button className="modern-btn">Check Out</button>
         </div>
       </div>
-
-
 
       {/* Check-in Modal */}
       {showCheckinModal && (
@@ -172,26 +202,58 @@ const AttendanceTab = ({ join_date }) => {
               max={maxDateTime}
             />
             <div className="modal-buttons">
-              <button onClick={async () => {
-                setLoading(true);
-                try {
-                  await checkin({ datetime: attendanceDateTime });
-                  toast.success("Checked in successfully!");
-                  fetchHistory();
-                  setShowCheckinModal(false);
-                  setAttendanceDateTime('');
-                } catch (err) {
-                  toast.error(err?.response?.data?.msg || "Check-in failed");
-                } finally {
-                  setLoading(false);
-                }
-              }}>
+              <button
+                onClick={async () => {
+                  if (!attendanceDateTime) {
+                    toast.error("Please select a date and time.");
+                    return;
+                  }
+                  setLoading(true);
+                  try {
+                    await checkin({ datetime: attendanceDateTime });
+                    toast.success("Checked in successfully!");
+                    setLastCheckinTime(attendanceDateTime);
+                    fetchHistory();
+                    setShowCheckinModal(false);
+                    setAttendanceDateTime("");
+                    setIsCheckedIn(true);
+                    const datePart = attendanceDateTime.slice(0, 10);
+                    localStorage.setItem("lastCheckinDate", datePart);
+                    localStorage.setItem("lastCheckinDateTime", attendanceDateTime);
+                  } catch (err) {
+                    toast.error(
+                      err?.response?.data?.msg || "Check-in failed"
+                    );
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
                 Submit
               </button>
-
-              <button className="modal-close" onClick={() => setShowCheckinModal(false)}>Cancel</button>
+              <button
+                className="modal-close"
+                onClick={() => setShowCheckinModal(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Show message after check-in */}
+      {lastCheckinTime && (
+        <div
+          className="checkin-notification"
+          style={{
+            margin: "16px 0",
+            color: "#2e7d32",
+            fontWeight: 500,
+          }}
+        >
+          You have checked in at{" "}
+          {new Date(lastCheckinTime).toLocaleString()}
         </div>
       )}
 
@@ -208,183 +270,55 @@ const AttendanceTab = ({ join_date }) => {
               max={maxDateTime}
             />
             <div className="modal-buttons">
-              <button onClick={async () => {
-                setLoading(true);
-                try {
-                  await checkout({ datetime: attendanceDateTime });
-                  toast.success("Checked out successfully!");
-                  fetchHistory();
-                  setShowCheckoutModal(false);
-                  setAttendanceDateTime('');
-                } catch (err) {
-                  toast.error(err?.response?.data?.msg || "Check-out failed");
-                } finally {
-                  setLoading(false);
-                }
-              }}>
+              <button
+                onClick={async () => {
+                  if (!attendanceDateTime) {
+                    toast.error("Please select a date and time.");
+                    return;
+                  }
+                  setLoading(true);
+                  try {
+                    await checkout({ datetime: attendanceDateTime });
+                    toast.success("Checked out successfully!");
+                    fetchHistory();
+                    setShowCheckoutModal(false);
+                    setAttendanceDateTime("");
+                    setIsCheckedIn(false);
+                    localStorage.removeItem("lastCheckinDate");
+                    localStorage.removeItem("lastCheckinDateTime");
+                  } catch (err) {
+                    toast.error(
+                      err?.response?.data?.msg || "Check-out failed"
+                    );
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
                 Submit
               </button>
-
-              <button className="modal-close" onClick={() => setShowCheckoutModal(false)}>Cancel</button>
+              <button
+                className="modal-close"
+                onClick={() => setShowCheckoutModal(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-
       )}
+
       {loading && (
         <div className="overlay-loader">
           <div className="spinner"></div>
           <p>Processing...</p>
         </div>
       )}
-
     </>
   );
 };
 
 
-// const LeaveTab = () => {
-//   const [leaveDate, setLeaveDate] = useState('');
-//   const [reason, setReason] = useState('');
-//   const [leaveHistory, setLeaveHistory] = useState([]);
-//   const [page, setPage] = useState(1);
-//   const perPage = 5;
-//   const [leaveFromDate, setLeaveFromDate] = useState('');
-//   const [leaveToDate, setLeaveToDate] = useState('');
-//   const [loading, setLoading] = useState(false);
-
-
-
-//   useEffect(() => {
-//     getLeaveHistory()
-//       .then(res => setLeaveHistory(res.data || []))
-//       .catch(() => setLeaveHistory([]));
-//   }, []);
-
-//   const handleLeaveSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true); // start spinner
-//     try {
-//       await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
-//       toast.success('Leave request submitted');
-
-//       // Reset fields
-//       setLeaveFromDate('');
-//       setLeaveToDate('');
-//       setReason('');
-
-//       // Refresh leave history
-//       const res = await getLeaveHistory();
-//       setLeaveHistory(res.data || []);
-//     } catch {
-//       toast.error('Failed to submit leave request');
-//     } finally {
-//       setLoading(false); // stop spinner
-//     }
-//   };
-
-
-//   const startIdx = (page - 1) * perPage;
-//   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
-//   const totalPages = Math.ceil(leaveHistory.length / perPage);
-
-
-//   return (
-//     <div className="leave-tab-grid">
-//       <div className="leave-form-card">
-//         <h3>Leave Request Form</h3>
-//         <form className="leave-form" onSubmit={handleLeaveSubmit}>
-//           <label>
-//             Leave From
-//             <input
-//               type="date"
-//               value={leaveFromDate}
-//               onChange={e => setLeaveFromDate(e.target.value)}
-//               required
-//             />
-//           </label>
-//           <label>
-//             Leave To
-//             <input
-//               type="date"
-//               value={leaveToDate}
-//               onChange={e => setLeaveToDate(e.target.value)}
-//               required
-//             />
-//           </label>
-
-//           <label>
-//             Reason
-//             <textarea
-//               value={reason}
-//               onChange={e => setReason(e.target.value)}
-//               placeholder="Enter the reason for leave"
-//               required
-//             />
-//           </label>
-//           <button type="submit" className="apply-btn">Apply Leave</button>
-//         </form>
-//       </div>
-//       <div className="leave-history-card">
-//         <h4>Leave History</h4>
-//         <table>
-//           <thead>
-//             <tr>
-//               <th>From</th>
-//               <th>To</th>
-//               <th>Reason</th>
-//               <th>Status</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {pageData.length === 0 ? (
-//               <tr>
-//                 <td colSpan={4} style={{ textAlign: 'center' }}>No leave history</td>
-//               </tr>
-//             ) : (
-//               pageData.map((leave, idx) => (
-//                 <tr key={idx}>
-//                   <td>{leave.from_date}</td>
-//                   <td>{leave.to_date}</td>
-//                   <td>{leave.reason}</td>
-//                   <td>{leave.status}</td>
-//                 </tr>
-//               ))
-//             )}
-//           </tbody>
-//         </table>
-//         {totalPages > 1 && (
-//           <div className="leave-pagination">
-//             <button
-//               onClick={() => setPage(p => Math.max(1, p - 1))}
-//               disabled={page === 1}
-//               className="leave-btn"
-//             >
-//               Previous
-//             </button>
-//             <span className="leave-page">{page} / {totalPages}</span>
-//             <button
-//               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-//               disabled={page === totalPages}
-//               className="leave-btn"
-//             >
-//               Next
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//       {loading && (
-//         <div className="overlay-loader">
-//           <div className="spinner"></div>
-//           <p>Submitting Leave...</p>
-//         </div>
-//       )}
-//     </div>
-
-//   );
-
-
-// };
 
 
 const LeaveTab = () => {
@@ -403,35 +337,43 @@ const LeaveTab = () => {
       .catch(() => setLeaveHistory([]));
   }, []);
 
-const isWeekend = (dateString) => {
-  const day = new Date(dateString).getDay();
-  return day === 0 || day === 6; // Sunday=0, Saturday=6
-};
+  const handleLeaveSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true); // start spinner
+    try {
+      await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
+      toast.success('Leave request submitted');
 
-const handleLeaveSubmit = async (e) => {
-  e.preventDefault();
+      // Reset fields
+      setLeaveFromDate('');
+      setLeaveToDate('');
+      setReason('');
 
-  if (isWeekend(leaveFromDate) || isWeekend(leaveToDate)) {
-    toast.error("Cannot apply leave starting or ending on a weekend.");
-    return;
-  }
+      // Refresh leave history
+      const res = await getLeaveHistory();
+      setLeaveHistory(res.data || []);
+    } catch {
+      toast.error('Failed to submit leave request');
+    } finally {
+      setLoading(false); // stop spinner
+    }
+  };
 
-  setLoading(true);
-  try {
-    await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
-    toast.success('Leave request submitted');
-    setLeaveFromDate('');
-    setLeaveToDate('');
-    setReason('');
-    const res = await getLeaveHistory();
-    setLeaveHistory(res.data || []);
-  } catch {
-    toast.error('Failed to submit leave request');
-  } finally {
-    setLoading(false);
-  }
-};
-
+  // Withdraw leave handler
+  const handleWithdraw = async (leaveId) => {
+    setLoading(true);
+    try {
+      await withdrawLeaveRequest(leaveId);
+      toast.success('Leave withdrawn successfully');
+      // Refresh leave history
+      const res = await getLeaveHistory();
+      setLeaveHistory(res.data || []);
+    } catch (err) {
+      toast.error('Failed to withdraw leave');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const startIdx = (page - 1) * perPage;
   const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
@@ -469,12 +411,9 @@ const handleLeaveSubmit = async (e) => {
               required
             />
           </label>
-          <button type="submit" className="apply-btn">
-            Apply Leave
-          </button>
+          <button type="submit" className="apply-btn">Apply Leave</button>
         </form>
       </div>
-
       <div className="leave-history-card">
         <h4>Leave History</h4>
         <table>
@@ -483,8 +422,8 @@ const handleLeaveSubmit = async (e) => {
               <th>From</th>
               <th>To</th>
               <th>Reason</th>
-              <th>Type</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -498,41 +437,23 @@ const handleLeaveSubmit = async (e) => {
                   <td>{leave.from_date}</td>
                   <td>{leave.to_date}</td>
                   <td>{leave.reason}</td>
+                  <td>{leave.status}</td>
                   <td>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        padding: "2px 8px",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        color: "white",
-                        backgroundColor: leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
-                      }}
-                    >
-                      {leave.leave_type || "Paid"}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        fontWeight: "bold",
-                        color:
-                          leave.status === "Accepted"
-                            ? "#27ae60"
-                            : leave.status === "Pending"
-                            ? "#f39c12"
-                            : "#e74c3c"
-                      }}
-                    >
-                      {leave.status}
-                    </span>
+                    {leave.status === "Pending" && (
+                      <button
+                        className="withdraw-btn"
+                        onClick={() => handleWithdraw(leave.id)}
+                        disabled={loading}
+                      >
+                        Withdraw
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-
         {totalPages > 1 && (
           <div className="leave-pagination">
             <button
@@ -553,17 +474,17 @@ const handleLeaveSubmit = async (e) => {
           </div>
         )}
       </div>
-
       {loading && (
         <div className="overlay-loader">
           <div className="spinner"></div>
-          <p>Submitting Leave...</p>
+          <p>{loading ? 'Processing...' : ''}</p>
         </div>
       )}
     </div>
   );
-};
 
+
+};
 
 const holidays = [
   { date: '2025-01-26', name: 'Republic Day' },
@@ -672,20 +593,20 @@ const HistoryTab = () => {
 
 
   useEffect(() => {
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
-      const res = await getHistory();
-      setHistory(res.data || []);
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to load attendance history');
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchHistory();
-}, []);
+    const fetchHistory = async () => {
+      setLoading(true);
+      try {
+        const res = await getHistory();
+        setHistory(res.data || []);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load attendance history');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []);
 
 
   const formatDateDMY = (dateStr) => {
@@ -699,85 +620,85 @@ const HistoryTab = () => {
   const pageData = history.slice(startIdx, startIdx + perPage);
   return (
     <div className="card">
-  <h3>Attendance History</h3>
+      <h3>Attendance History</h3>
 
-  {loading ? (
-    <div className="overlay-loader">
-      <div className="spinner"></div>
-      <p>Loading Attendance...</p>
-    </div>
-  ) : (
-    <>
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours worked</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {pageData.length === 0 ? (
-            <tr><td colSpan="5">No records found</td></tr>
-          ) : (
-            pageData.map((record, i) => {
-              const hours_worked = record.hours_worked;
-              let status = 'Absent';
-              if (hours_worked >= 9) status = 'Present';
-              else if (hours_worked >= 4) status = 'Half-Day';
-              else if (hours_worked > 0) status = 'Full-Day Leave';
-
-              return (
-                <tr key={i}>
-                  <td>{formatDateDMY(record.date)}</td>
-                  <td>{record.checkin ? record.checkin.split(" ")[1] + " " + record.checkin.split(" ")[2] : "—"}</td>
-                  <td>{record.checkout ? record.checkout.split(" ")[1] + " " + record.checkout.split(" ")[2] : "—"}</td>
-                  <td>{hours_worked ? hours_worked.toFixed(2) + " hrs" : "—"}</td>
-                  <td>
-                    <span className={
-                      status === "Present" ? "status-full" :
-                        status === "Half-Day" ? "status-half" : "status-leave"
-                    }>
-                      {status}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination capsule" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="capsule-btn"
-          >
-            Previous
-          </button>
-          <span className="capsule-page">{page} / {totalPages}</span>
-          <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="capsule-btn"
-          >
-            Next
-          </button>
+      {loading ? (
+        <div className="overlay-loader">
+          <div className="spinner"></div>
+          <p>Loading Attendance...</p>
         </div>
+      ) : (
+        <>
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours worked</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {pageData.length === 0 ? (
+                <tr><td colSpan="5">No records found</td></tr>
+              ) : (
+                pageData.map((record, i) => {
+                  const hours_worked = record.hours_worked;
+                  let status = 'In Progress';
+                  if (hours_worked >= 9) status = 'Present';
+                  else if (hours_worked >= 4) status = 'Half-Day';
+                  else if (hours_worked > 0) status = 'Full-Day Leave';
+
+                  return (
+                    <tr key={i}>
+                      <td>{formatDateDMY(record.date)}</td>
+                      <td>{record.checkin ? record.checkin.split(" ")[1] + " " + record.checkin.split(" ")[2] : "—"}</td>
+                      <td>{record.checkout ? record.checkout.split(" ")[1] + " " + record.checkout.split(" ")[2] : "—"}</td>
+                      <td>{hours_worked ? hours_worked.toFixed(2) + " hrs" : "—"}</td>
+                      <td>
+                        <span className={
+                          status === "Present" ? "status-full" :
+                            status === "Half-Day" ? "status-half" : "status-leave"
+                        }>
+                          {status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="pagination capsule" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="capsule-btn"
+              >
+                Previous
+              </button>
+              <span className="capsule-page">{page} / {totalPages}</span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="capsule-btn"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
-    </>
-  )}
-</div>
+    </div>
   );
 };
 
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('attendance');
-const [summary, setSummary] = useState({
-  leavesTaken: 0,
-  leavesLeft: 0,
-  pendingRequests: 0,
-  totalAllocated: 0
-});
+  const [summary, setSummary] = useState({
+    leavesTaken: 0,
+    leavesLeft: 0,
+    pendingRequests: 0,
+    totalAllocated: 0
+  });
 
   const [employee, setEmployee] = useState({ name: '', email: '', position: '', department: '', join_date: '', bloodGroup: '' });
   const [editMode, setEditMode] = useState(false);
@@ -790,10 +711,17 @@ const [summary, setSummary] = useState({
 
   useEffect(() => {
     getProfile().then(res => setEmployee(res.data)).catch(() => toast.error('Failed to load profile'));
-     getEmployeeSummary()
-    .then(res => setSummary(res.data))
-    .catch(() => toast.error('Failed to load dashboard data'));
+    getEmployeeSummary()
+      .then(res => setSummary(res.data))
+      .catch(() => toast.error('Failed to load dashboard data'));
   }, []);
+
+  // 👇 Add this useEffect to reset editMode when not on profile tab
+  useEffect(() => {
+    if (activeTab !== 'profile') {
+      setEditMode(false);
+    }
+  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.clear();

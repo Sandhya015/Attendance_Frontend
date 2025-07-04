@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   getAllRecords, getAllLeaveRequests,
   updateLeaveStatus, getPendingCheckins,
-  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees, getWeeklyLowBiometricHours, getWeeklyLowBiometricHoursReport
+  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees, getWeeklyLowBiometricHours,withdrawLeaveRequest
 } from '../services/api';
 import API from '../services/api';
 
@@ -583,75 +583,37 @@ const AdminDashboard = () => {
   };
 
 
-  const handleWeeklyReport = async () => {
-    if (!weeklyFrom || !weeklyTo) {
-      toast.warning("Please select both From and To dates.");
-      return;
-    }
-
-    // Convert to YYYY-MM-DD format explicitly
-    const fromDateFormatted = new Date(weeklyFrom).toISOString().split("T")[0];
-    const toDateFormatted = new Date(weeklyTo).toISOString().split("T")[0];
-
-    console.log("Sending dates:", fromDateFormatted, toDateFormatted);
-
-    setLoadingLogs(true);
-    setShowWeeklyModal(false);
-
-    try {
-      const res = await getWeeklyLowBiometricHours({
-        from_date: fromDateFormatted,
-        to_date: toDateFormatted,
-      });
-
-      setBiometricLogs(res.data || []);
-      setCurrentPageBiometric(1);
-    } catch (err) {
-      toast.error("Failed to fetch weekly report");
-    } finally {
-      setLoadingLogs(false);
-    }
-  };
-
-
-  const handleExportWeeklyReport = async () => {
+const handleWeeklyReport = async () => {
   if (!weeklyFrom || !weeklyTo) {
     toast.warning("Please select both From and To dates.");
     return;
   }
 
+  // Convert to YYYY-MM-DD format explicitly
+  const fromDateFormatted = new Date(weeklyFrom).toISOString().split("T")[0];
+  const toDateFormatted = new Date(weeklyTo).toISOString().split("T")[0];
+
+  console.log("Sending dates:", fromDateFormatted, toDateFormatted);
+
   setLoadingLogs(true);
+  setShowWeeklyModal(false);
+
   try {
-    // 👇 Important: specify { responseType: 'blob' } to get raw file
-    const res = await API.get("/admin/biometric/weekly-underworked-report", {
-      params: {
-        from_date: weeklyFrom,
-        to_date: weeklyTo,
-      },
-      responseType: "blob",
+    const res = await getWeeklyLowBiometricHours({
+      from_date: fromDateFormatted,
+      to_date: toDateFormatted,
     });
 
-    // Create download link
-    const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      `underworked_report_${weeklyFrom}_to_${weeklyTo}.csv`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    toast.success("Weekly report exported successfully!");
+    setBiometricLogs(res.data || []);
+    setCurrentPageBiometric(1);
   } catch (err) {
-    console.error("Export error:", err.response || err.message);
-    toast.error("Failed to export weekly report.");
+    toast.error("Failed to fetch weekly report");
   } finally {
     setLoadingLogs(false);
   }
 };
+
+
 
 
 
@@ -930,16 +892,6 @@ const AdminDashboard = () => {
                           >
                             {loadingLogs ? "Generating..." : "Generate Report"}
                           </button>
-
-                          <button
-                            className="btn-primary"
-                            onClick={handleExportWeeklyReport}
-                            disabled={!weeklyFrom || !weeklyTo || loadingLogs}
-                          >
-                            Export CSV
-                          </button>
-
-
                           <button
                             className="btn-secondary"
                             onClick={() => setShowWeeklyModal(false)}

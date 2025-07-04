@@ -6,7 +6,7 @@ import {
     getEmployeeSummary, getProfile,
     updateEmployeeProfile, getHolidays, getTeamMembers, getTeamSummary, getManagerPendingCheckins,
     approveCheckinByManager,
-    rejectCheckinByManager, getPendingLeaveApprovals,
+    rejectCheckinByManager, getPendingLeaveApprovals, withdrawLeaveRequest,
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -378,36 +378,43 @@ const LeaveTab = () => {
             .catch(() => setLeaveHistory([]));
     }, []);
 
-
-    const isWeekend = (dateString) => {
-        const day = new Date(dateString).getDay();
-        return day === 0 || day === 6; // Sunday=0, Saturday=6
-    };
-
     const handleLeaveSubmit = async (e) => {
         e.preventDefault();
-
-        if (isWeekend(leaveFromDate) || isWeekend(leaveToDate)) {
-            toast.error("Cannot apply leave starting or ending on a weekend.");
-            return;
-        }
-
-        setLoading(true);
+        setLoading(true); // start spinner
         try {
             await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
             toast.success('Leave request submitted');
+
+            // Reset fields
             setLeaveFromDate('');
             setLeaveToDate('');
             setReason('');
+
+            // Refresh leave history
             const res = await getLeaveHistory();
             setLeaveHistory(res.data || []);
         } catch {
             toast.error('Failed to submit leave request');
         } finally {
-            setLoading(false);
+            setLoading(false); // stop spinner
         }
     };
 
+    // Withdraw leave handler
+    const handleWithdraw = async (leaveId) => {
+        setLoading(true);
+        try {
+            await withdrawLeaveRequest(leaveId);
+            toast.success('Leave withdrawn successfully');
+            // Refresh leave history
+            const res = await getLeaveHistory();
+            setLeaveHistory(res.data || []);
+        } catch (err) {
+            toast.error('Failed to withdraw leave');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const startIdx = (page - 1) * perPage;
     const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
@@ -445,12 +452,9 @@ const LeaveTab = () => {
                             required
                         />
                     </label>
-                    <button type="submit" className="apply-btn">
-                        Apply Leave
-                    </button>
+                    <button type="submit" className="apply-btn">Apply Leave</button>
                 </form>
             </div>
-
             <div className="leave-history-card">
                 <h4>Leave History</h4>
                 <table>
@@ -459,8 +463,8 @@ const LeaveTab = () => {
                             <th>From</th>
                             <th>To</th>
                             <th>Reason</th>
-                            <th>Type</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -474,41 +478,23 @@ const LeaveTab = () => {
                                     <td>{leave.from_date}</td>
                                     <td>{leave.to_date}</td>
                                     <td>{leave.reason}</td>
+                                    <td>{leave.status}</td>
                                     <td>
-                                        <span
-                                            style={{
-                                                display: "inline-block",
-                                                padding: "2px 8px",
-                                                borderRadius: "6px",
-                                                fontSize: "12px",
-                                                color: "white",
-                                                backgroundColor: leave.leave_type === "LOP" ? "#e74c3c" : "#27ae60"
-                                            }}
-                                        >
-                                            {leave.leave_type || "Paid"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            style={{
-                                                fontWeight: "bold",
-                                                color:
-                                                    leave.status === "Accepted"
-                                                        ? "#27ae60"
-                                                        : leave.status === "Pending"
-                                                            ? "#f39c12"
-                                                            : "#e74c3c"
-                                            }}
-                                        >
-                                            {leave.status}
-                                        </span>
+                                        {leave.status === "Pending" && (
+                                            <button
+                                                className="withdraw-btn"
+                                                onClick={() => handleWithdraw(leave.id)}
+                                                disabled={loading}
+                                            >
+                                                Withdraw
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
-
                 {totalPages > 1 && (
                     <div className="leave-pagination">
                         <button
@@ -529,17 +515,17 @@ const LeaveTab = () => {
                     </div>
                 )}
             </div>
-
             {loading && (
                 <div className="overlay-loader">
                     <div className="spinner"></div>
-                    <p>Submitting Leave...</p>
+                    <p>{loading ? 'Processing...' : ''}</p>
                 </div>
             )}
         </div>
     );
-};
 
+
+};
 
 const ApprovalsTab = ({ token }) => {
     const [requests, setRequests] = useState([]);
@@ -554,48 +540,23 @@ const ApprovalsTab = ({ token }) => {
         }
     };
 
-    // const handleDecision = async (id, action) => {
-    //     const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
-    //         method: 'POST',
-    //         headers: {
-    //             Authorization: `Bearer ${token}`,
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({ action })
-    //     });
-    //     const data = await res.json();
-    //     if (res.ok) {
-    //         toast.success(data.msg);
-    //         fetchRequests();
-    //     } else {
-    //         toast.error(data.msg || 'Error');
-    //     }
-    // };
-
     const handleDecision = async (id, action) => {
-        try {
-            const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ action })
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                toast.success(data.msg || 'Request approved successfully!');
-                fetchRequests(); // Refresh the list
-            } else {
-                toast.error(data.msg || `Error: ${res.status}`);
-            }
-        } catch (err) {
-            console.error("Approval failed:", err);
-            toast.error('Network error or server unavailable');
+        const res = await fetch(`https://backend-api-corrected-1.onrender.com/leave/approve/${id}`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            toast.success(data.msg);
+            fetchRequests();
+        } else {
+            toast.error(data.msg || 'Error');
         }
     };
-
 
     useEffect(() => {
         fetchRequests();
@@ -836,6 +797,11 @@ const ManagerDashboard = () => {
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
     const nextHoliday = getNextHoliday();
+
+    useEffect(() => {
+        setEditMode(false);
+    }, [activeTab]);
+
     const TeamTab = () => {
         const [teamMembers, setTeamMembers] = useState([]);
         const [loading, setLoading] = useState(true);

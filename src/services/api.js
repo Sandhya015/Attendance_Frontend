@@ -225,9 +225,6 @@ export const getBiometricEmployees = (employeeId) =>
   });
 export const getWeeklyLowBiometricHours = (params) =>
   API.get("/admin/biometric/weekly-underworked", { params });
-export const getWeeklyLowBiometricHoursReport = (params) =>
-  API.get("/admin/biometric/weekly-underworked-report", { params });
-
 
 
 
@@ -245,5 +242,8 @@ export const approveCheckinByManager = (id) =>
 export const rejectCheckinByManager = (id) =>
   API.post(`/checkins/reject/${id}`);
 export const getPendingLeaveApprovals = () => API.get('/leave/pending-approvals');
+
+export const withdrawLeaveRequest = (leaveId) =>
+  API.post(`/leave/withdraw/${leaveId}`);
 
 export default API;

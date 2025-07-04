@@ -275,7 +275,7 @@ const AttendanceTab = ({ join_date }) => {
     </>
   );
 };
-//leave tab
+
 const LeaveTab = () => {
   const [leaveDate, setLeaveDate] = useState('');
   const [reason, setReason] = useState('');

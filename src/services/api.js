@@ -246,6 +246,7 @@ export const getPendingLeaveApprovals = () => API.get('/leave/pending-approvals'
 
 export const withdrawLeaveRequest = (leaveId) =>
   API.delete(`/leave/withdraw/${leaveId}`);
+
 export const getTeamLeaveHistory = () => API.get('/manager/team/leave-history');
 
 

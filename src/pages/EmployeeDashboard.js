@@ -584,7 +584,6 @@ const LeaveTab = () => {
   </div>
 )}
 );
-};
 
 
 const holidays = [

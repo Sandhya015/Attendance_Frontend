@@ -2,14 +2,16 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   getAllRecords, getAllLeaveRequests,
   updateLeaveStatus, getPendingCheckins,
-  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees
+  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees, getWeeklyLowBiometricHours,withdrawLeaveRequest
 } from '../services/api';
+import API from '../services/api';
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { FaChartBar, FaClock, FaUserPlus, FaCalendarAlt, FaFileUpload, FaSignOutAlt } from 'react-icons/fa';
-import logo from '../assets/logooo.jpg'; 
+import logo from '../assets/logooo.jpg';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 import { FaUserEdit, FaFingerprint } from 'react-icons/fa';
@@ -62,7 +64,8 @@ const AdminDashboard = () => {
   const [pendingCheckins, setPendingCheckins] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
-  const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [attendanceStats, setAttendanceStats] = useState({ present: 0, leave: 0, absent: 0 });
+  const [totalEmployees, setTotalEmployees] = useState(0);
   const [newEmployee, setNewEmployee] = useState({
     emp_code: '', name: '', email: '', reporting_to: [], join_date: '', password: '', department: '', position: '', bloodGroup: '', role: ''
   });
@@ -235,7 +238,7 @@ const AdminDashboard = () => {
     const present = records.filter(r => r.date === today && r.checkin).length;
     const leave = leaveRequests.filter(l => l.date === today).length;
     const absent = Math.max(0, totalEmployees - (present + leave));
-    setAttendanceStats({ present, leave,  });
+    setAttendanceStats({ present, leave, absent });
   }, [records, leaveRequests, totalEmployees]);
 
   useEffect(() => { fetchAllData(); }, [fetchAllData]);
@@ -270,26 +273,26 @@ const AdminDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
 
-const fetchEmployees = useCallback(async () => {
-  setLoadingEmployees(true);
-  try {
-    const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/employees', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`
-      }
-    });
-    const data = await res.json();
-    console.log("Employee API Response:", data);
+  const fetchEmployees = useCallback(async () => {
+    setLoadingEmployees(true);
+    try {
+      const res = await fetch('https://backend-api-corrected-1.onrender.com/admin/employees', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      const data = await res.json();
+      console.log("Employee API Response:", data);
 
-    // ✅ Since data IS an array
-    setEmployees(data);
+      // ✅ Since data IS an array
+      setEmployees(data);
 
-  } catch (err) {
-    console.error("Failed to fetch employees:", err);
-  } finally {
-    setLoadingEmployees(false);
-  }
-}, []);
+    } catch (err) {
+      console.error("Failed to fetch employees:", err);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  }, []);
 
 
 
@@ -356,21 +359,16 @@ const fetchEmployees = useCallback(async () => {
 
     setUploading(true); // Start loading
     try {
-      await fetch('https://backend-api-corrected-1.onrender.com/admin/upload-attendance', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: formData
-      });
+      await API.post('/admin/upload-attendance', formData);
       toast.success('Attendance uploaded successfully!');
       fetchRecords(); // Refresh the data
     } catch (err) {
-      console.error(err);
+      console.error('Error uploading attendance:', err);
       toast.error('Failed to upload attendance.');
     } finally {
       setUploading(false); // Stop loading
     }
   };
-
 
   const handleAddEmployee = async () => {
     setAddingEmployee(true);
@@ -483,6 +481,10 @@ const fetchEmployees = useCallback(async () => {
   const [holidayToDelete, setHolidayToDelete] = useState(null);
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  const [weeklyFrom, setWeeklyFrom] = useState('');
+  const [weeklyTo, setWeeklyTo] = useState('');
+
 
 
 
@@ -577,8 +579,42 @@ const fetchEmployees = useCallback(async () => {
   const handleClearFilters = () => {
     const cleared = { date: '', employeeId: '' };
     setFilters(cleared);
-    fetchBiometricLogs(cleared); 
+    fetchBiometricLogs(cleared);
   };
+
+
+const handleWeeklyReport = async () => {
+  if (!weeklyFrom || !weeklyTo) {
+    toast.warning("Please select both From and To dates.");
+    return;
+  }
+
+  // Convert to YYYY-MM-DD format explicitly
+  const fromDateFormatted = new Date(weeklyFrom).toISOString().split("T")[0];
+  const toDateFormatted = new Date(weeklyTo).toISOString().split("T")[0];
+
+  console.log("Sending dates:", fromDateFormatted, toDateFormatted);
+
+  setLoadingLogs(true);
+  setShowWeeklyModal(false);
+
+  try {
+    const res = await getWeeklyLowBiometricHours({
+      from_date: fromDateFormatted,
+      to_date: toDateFormatted,
+    });
+
+    setBiometricLogs(res.data || []);
+    setCurrentPageBiometric(1);
+  } catch (err) {
+    toast.error("Failed to fetch weekly report");
+  } finally {
+    setLoadingLogs(false);
+  }
+};
+
+
+
 
 
 
@@ -623,20 +659,13 @@ const fetchEmployees = useCallback(async () => {
 
   const handleEditSubmit = async () => {
     try {
-      await fetch(`https://backend-api-corrected-1.onrender.com/admin/employees/${editingEmp._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(editingEmp)
-      });
+      await API.put(`/admin/employees/${editingEmp._id}`, editingEmp);
       toast.success("Employee updated!");
       setEditingEmp(null);
       fetchEmployees();
     } catch (err) {
       toast.error("Failed to update employee.");
-      console.error(err);
+      console.error("Error updating employee:", err);
     }
   };
 
@@ -646,22 +675,16 @@ const fetchEmployees = useCallback(async () => {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`https://backend-api-corrected-1.onrender.com/admin/employees/${empId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      await API.delete(`/admin/employees/${empId}`);
 
-      if (res.ok) {
-        toast.success("Employee deleted successfully");
-        fetchEmployees(); // refresh the list
-      } else {
-        toast.error("Failed to delete employee");
-      }
+      toast.success("Employee deleted successfully");
+      fetchEmployees(); // Refresh the list
     } catch (err) {
       console.error("Error deleting employee:", err);
-      toast.error("Server error while deleting");
+
+      // Show server message if available
+      const message = err.response?.data?.msg || "Server error while deleting";
+      toast.error(message);
     }
   };
 
@@ -776,6 +799,15 @@ const fetchEmployees = useCallback(async () => {
                 </button>
 
                 <button
+                  onClick={() => setShowWeeklyModal(true)}
+                  style={{ backgroundColor: '#3498db', color: '#fff', marginLeft: '8px' }}
+                  disabled={loadingLogs}
+                >
+                  Weekly Report
+                </button>
+
+
+                <button
                   onClick={handleClearFilters}
                   style={{ backgroundColor: '#ccc', marginLeft: '8px' }}
                   disabled={loadingLogs}
@@ -794,20 +826,32 @@ const fetchEmployees = useCallback(async () => {
               ) : (
                 <table className="biometric-logs-table">
                   <thead>
-                    <tr>
-                      <th>Attendance Date</th>
-                      <th>Employee ID</th>
-                      <th>In Time</th>
-                      <th>Out Time</th>
-                      <th>Duration (Hrs)</th>
-                      <th>Status</th>
-                    </tr>
+                    {biometricLogs[0]?.TotalHours !== undefined ? (
+                      <tr>
+                        <th>Employee ID</th>
+                        <th>Total Hours Worked</th>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <th>Attendance Date</th>
+                        <th>Employee ID</th>
+                        <th>In Time</th>
+                        <th>Out Time</th>
+                        <th>Duration (Hrs)</th>
+                        <th>Status</th>
+                      </tr>
+                    )}
                   </thead>
                   <tbody>
-                    {currentLogs.map((log, i) => {
-
-
-                      return (
+                    {currentLogs.map((log, i) =>
+                      log.TotalHours !== undefined ? (
+                        // Weekly Report Row
+                        <tr key={i}>
+                          <td>{log.EmployeeId}</td>
+                          <td>{log.TotalHours}</td>
+                        </tr>
+                      ) : (
+                        // Regular Log Row
                         <tr key={i}>
                           <td>{log.AttendanceDate}</td>
                           <td>{log.EmployeeId}</td>
@@ -816,12 +860,52 @@ const fetchEmployees = useCallback(async () => {
                           <td>{log.DurationHours || '—'}</td>
                           <td>{log.Status || '-'}</td>
                         </tr>
-                      );
-                    })}
+                      )
+                    )}
                   </tbody>
-                </table>
 
+                  {showWeeklyModal && (
+                    <div className="modal-overlay">
+                      <div className="weekly-modal">
+                        <h3>📊 Weekly Report</h3>
+                        <div className="input-group">
+                          <label>From Date</label>
+                          <input
+                            type="date"
+                            value={weeklyFrom}
+                            onChange={(e) => setWeeklyFrom(e.target.value)}
+                          />
+                        </div>
+                        <div className="input-group">
+                          <label>To Date</label>
+                          <input
+                            type="date"
+                            value={weeklyTo}
+                            onChange={(e) => setWeeklyTo(e.target.value)}
+                          />
+                        </div>
+                        <div className="weekly-buttons">
+                          <button
+                            className="btn-primary"
+                            onClick={handleWeeklyReport}
+                            disabled={loadingLogs || !weeklyFrom || !weeklyTo}
+                          >
+                            {loadingLogs ? "Generating..." : "Generate Report"}
+                          </button>
+                          <button
+                            className="btn-secondary"
+                            onClick={() => setShowWeeklyModal(false)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </table>
               )}
+
               <div className="pagination-classic">
                 <button
                   className="page-btn-classic"
@@ -841,10 +925,8 @@ const fetchEmployees = useCallback(async () => {
                   Next
                 </button>
               </div>
-
             </div>
           )}
-
 
           {activeTab === 'biometricEmployees' && (
             <div className="admin-biometric-employees">
@@ -1387,7 +1469,7 @@ const fetchEmployees = useCallback(async () => {
                   value={newEmployee.emp_code}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (/^[a-zA-Z0-9 \-]*$/.test(value)) {  
+                    if (/^[a-zA-Z0-9 \-]*$/.test(value)) {
                       setNewEmployee({ ...newEmployee, emp_code: value });
                     }
                   }}

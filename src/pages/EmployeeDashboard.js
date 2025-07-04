@@ -124,36 +124,41 @@ const DashboardTab = ({ employee }) => {
 
 
 
+
 const AttendanceTab = ({ join_date }) => {
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [attendanceDateTime, setAttendanceDateTime] = useState('');
+  const [attendanceDateTime, setAttendanceDateTime] = useState("");
   const todayStr = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
   const [loading, setLoading] = useState(false);
-  const [lastCheckinTime, setLastCheckinTime] = useState('');
+  const [lastCheckinTime, setLastCheckinTime] = useState("");
   const [isCheckedIn, setIsCheckedIn] = useState(false);
 
-  
+  // Load last check-in date on mount
   useEffect(() => {
-    const stored = localStorage.getItem("isCheckedIn");
-    if (stored === "true") {
+    const storedDate = localStorage.getItem("lastCheckinDate");
+    const todayDateStr = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+    if (storedDate === todayDateStr) {
       setIsCheckedIn(true);
+      const storedDateTime = localStorage.getItem("lastCheckinDateTime");
+      if (storedDateTime) {
+        setLastCheckinTime(storedDateTime);
+      }
+    } else {
+      setIsCheckedIn(false);
     }
   }, []);
-  
-
-
 
   const fetchHistory = async () => {
     try {
       await getHistory();
-      // Optionally reload UI state here
     } catch (err) {
       toast.error("Failed to fetch attendance history");
     }
   };
 
-  const minDateTime = join_date ? `${join_date}T00:00` : '';
+  const minDateTime = join_date ? `${join_date}T00:00` : "";
   const maxDateTime = todayStr;
 
   return (
@@ -163,7 +168,9 @@ const AttendanceTab = ({ join_date }) => {
           className="action-card"
           onClick={() => {
             if (isCheckedIn) {
-              toast.info("You have already checked in. Only once you can checkin in a day.");
+              toast.info(
+                "You have already checked in today. You can only check in once per day."
+              );
               return;
             }
             setShowCheckinModal(true);
@@ -173,13 +180,14 @@ const AttendanceTab = ({ join_date }) => {
           <button className="modern-btn">Check In</button>
         </div>
 
-        <div className="action-card" onClick={() => setShowCheckoutModal(true)}>
+        <div
+          className="action-card"
+          onClick={() => setShowCheckoutModal(true)}
+        >
           <img src={checkoutImg} alt="Check Out" className="action-img" />
           <button className="modern-btn">Check Out</button>
         </div>
       </div>
-
-
 
       {/* Check-in Modal */}
       {showCheckinModal && (
@@ -194,35 +202,58 @@ const AttendanceTab = ({ join_date }) => {
               max={maxDateTime}
             />
             <div className="modal-buttons">
-              <button onClick={async () => {
-                setLoading(true);
-                try {
-                  await checkin({ datetime: attendanceDateTime });
-                  toast.success("Checked in successfully!");
-                  setLastCheckinTime(attendanceDateTime); // set state here
-                  fetchHistory();
-                  setShowCheckinModal(false);
-                  setAttendanceDateTime('');
-                  setIsCheckedIn(true);
-                  localStorage.setItem("isCheckedIn", "true");
-                } catch (err) {
-                  toast.error(err?.response?.data?.msg || "Check-in failed");
-                } finally {
-                  setLoading(false);
-                }
-              }}>
+              <button
+                onClick={async () => {
+                  if (!attendanceDateTime) {
+                    toast.error("Please select a date and time.");
+                    return;
+                  }
+                  setLoading(true);
+                  try {
+                    await checkin({ datetime: attendanceDateTime });
+                    toast.success("Checked in successfully!");
+                    setLastCheckinTime(attendanceDateTime);
+                    fetchHistory();
+                    setShowCheckinModal(false);
+                    setAttendanceDateTime("");
+                    setIsCheckedIn(true);
+                    const datePart = attendanceDateTime.slice(0, 10);
+                    localStorage.setItem("lastCheckinDate", datePart);
+                    localStorage.setItem("lastCheckinDateTime", attendanceDateTime);
+                  } catch (err) {
+                    toast.error(
+                      err?.response?.data?.msg || "Check-in failed"
+                    );
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
                 Submit
               </button>
-
-              <button className="modal-close" onClick={() => setShowCheckinModal(false)}>Cancel</button>
+              <button
+                className="modal-close"
+                onClick={() => setShowCheckinModal(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Show message after check-in */}
       {lastCheckinTime && (
-        <div className="checkin-notification" style={{ margin: '16px 0', color: '#2e7d32', fontWeight: 500 }}>
-          You have checked in at {new Date(lastCheckinTime).toLocaleString()}
+        <div
+          className="checkin-notification"
+          style={{
+            margin: "16px 0",
+            color: "#2e7d32",
+            fontWeight: 500,
+          }}
+        >
+          You have checked in at{" "}
+          {new Date(lastCheckinTime).toLocaleString()}
         </div>
       )}
 
@@ -239,42 +270,56 @@ const AttendanceTab = ({ join_date }) => {
               max={maxDateTime}
             />
             <div className="modal-buttons">
-              <button onClick={async () => {
-                setLoading(true);
-                try {
-                  await checkout({ datetime: attendanceDateTime });
-                  toast.success("Checked out successfully!");
-                  fetchHistory();
-                  setShowCheckoutModal(false);
-                  setAttendanceDateTime('');
-                  setIsCheckedIn(false);
-                  localStorage.removeItem("isCheckedIn");
-                } catch (err) {
-                  toast.error(err?.response?.data?.msg || "Check-out failed");
-                } finally {
-                  setLoading(false);
-                }
-              }}>
+              <button
+                onClick={async () => {
+                  if (!attendanceDateTime) {
+                    toast.error("Please select a date and time.");
+                    return;
+                  }
+                  setLoading(true);
+                  try {
+                    await checkout({ datetime: attendanceDateTime });
+                    toast.success("Checked out successfully!");
+                    fetchHistory();
+                    setShowCheckoutModal(false);
+                    setAttendanceDateTime("");
+                    setIsCheckedIn(false);
+                    localStorage.removeItem("lastCheckinDate");
+                    localStorage.removeItem("lastCheckinDateTime");
+                  } catch (err) {
+                    toast.error(
+                      err?.response?.data?.msg || "Check-out failed"
+                    );
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
                 Submit
               </button>
-
-              <button className="modal-close" onClick={() => setShowCheckoutModal(false)}>Cancel</button>
+              <button
+                className="modal-close"
+                onClick={() => setShowCheckoutModal(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-
       )}
+
       {loading && (
         <div className="overlay-loader">
           <div className="spinner"></div>
           <p>Processing...</p>
         </div>
-
-
       )}
     </>
   );
 };
+
+
+
 
 const LeaveTab = () => {
   const [leaveDate, setLeaveDate] = useState('');

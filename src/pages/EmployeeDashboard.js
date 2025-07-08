@@ -34,12 +34,12 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
   <aside className="sidebar">
     <div className="sidebar-logo">Employee</div>
     <ul>
-      <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaClock /> Attendance</li>
+      <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaClock /> WFH Attendance</li>
       {/* <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}><FaHome /> Dashboard</li> */}
       <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><FaUser /> Profile</li>
       <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaRegCalendarAlt /> Leave Request</li>
       <li className={activeTab === 'holiday' ? 'active' : ''} onClick={() => setActiveTab('holiday')}><FaCalendarAlt /> Holiday Calendar</li>
-      <li className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}><FaHistory /> Attendance History</li>
+      <li className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}><FaHistory /> WFH Attendance History</li>
       <li onClick={handleLogout}><FaSignOutAlt /> Logout</li>
     </ul>
   </aside>
@@ -655,7 +655,7 @@ const HistoryTab = () => {
   const pageData = history.slice(startIdx, startIdx + perPage);
   return (
     <div className="card">
-      <h3>Attendance History</h3>
+      <h3>WFH Attendance History</h3>
 
       {loading ? (
         <div className="overlay-loader">

@@ -83,6 +83,7 @@ const LoginPage = ({ onClose, openForgotPassword }) => {
       localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('role', role);
       localStorage.setItem('name', name);
+      localStorage.setItem('session_active', 'true');
 
       onClose();
 

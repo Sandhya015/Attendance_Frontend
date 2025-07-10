@@ -42,7 +42,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
         <ul>
             <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaClock />  Attendance</li>
             <li className={activeTab === 'team' ? 'active' : ''} onClick={() => setActiveTab('team')}><FaUsers /> Team</li>
-            <li className={activeTab === 'pendingCheckins' ? 'active' : ''} onClick={() => setActiveTab('pendingCheckins')}><FaClipboardCheck /> Pending Check-ins</li>
+            {/* <li className={activeTab === 'pendingCheckins' ? 'active' : ''} onClick={() => setActiveTab('pendingCheckins')}><FaClipboardCheck /> Pending Check-ins</li> */}
             <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><FaUser /> Profile</li>
             <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaRegCalendarAlt /> Leave Request</li>
             <li className={activeTab === 'approvals' ? 'active' : ''} onClick={() => setActiveTab('approvals')}><FaRegCalendarAlt /> Leave Approvals</li>
@@ -210,42 +210,42 @@ const ManagerPendingCheckinsTab = () => {
         }
     };
 
-    useEffect(() => {
-        fetchPendingCheckins();
-    }, []);
+//     useEffect(() => {
+//         fetchPendingCheckins();
+//     }, []);
 
-    return (
-        <div className="manager-checkin-tab">
-            <h3>Pending Check-Ins</h3>
-            <table className="pending-checkin-table">
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Date</th>
-                        <th>Check-in Time</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {pendingCheckins.length === 0 ? (
-                        <tr><td colSpan="4" style={{ textAlign: 'center' }}>No pending check-ins</td></tr>
-                    ) : (
-                        pendingCheckins.map((c) => (
-                            <tr key={c._id}>
-                                <td>{c.email}</td>
-                                <td>{c.date}</td>
-                                <td>{c.checkin_time}</td>
-                                <td>
-                                    <button onClick={() => handleDecision(c._id, 'approve')}>✅ Approve</button>
-                                    <button onClick={() => handleDecision(c._id, 'reject')} style={{ marginLeft: '8px', backgroundColor: 'red', color: 'white' }}>❌ Reject</button>
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-        </div>
-    );
+//     return (
+//         <div className="manager-checkin-tab">
+//             <h3>Pending Check-Ins</h3>
+//             <table className="pending-checkin-table">
+//                 <thead>
+//                     <tr>
+//                         <th>Email</th>
+//                         <th>Date</th>
+//                         <th>Check-in Time</th>
+//                         <th>Actions</th>
+//                     </tr>
+//                 </thead>
+//                 <tbody>
+//                     {pendingCheckins.length === 0 ? (
+//                         <tr><td colSpan="4" style={{ textAlign: 'center' }}>No pending check-ins</td></tr>
+//                     ) : (
+//                         pendingCheckins.map((c) => (
+//                             <tr key={c._id}>
+//                                 <td>{c.email}</td>
+//                                 <td>{c.date}</td>
+//                                 <td>{c.checkin_time}</td>
+//                                 <td>
+//                                     <button onClick={() => handleDecision(c._id, 'approve')}>✅ Approve</button>
+//                                     <button onClick={() => handleDecision(c._id, 'reject')} style={{ marginLeft: '8px', backgroundColor: 'red', color: 'white' }}>❌ Reject</button>
+//                                 </td>
+//                             </tr>
+//                         ))
+//                     )}
+//                 </tbody>
+//             </table>
+//         </div>
+//     );
 };
 
 const AttendanceTab = ({ join_date }) => {

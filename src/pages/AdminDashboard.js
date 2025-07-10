@@ -27,7 +27,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
       <li className={activeTab === 'editEmployee' ? 'active' : ''} onClick={() => setActiveTab('editEmployee')}><FaUserEdit /> Edit Employee</li>
       <li className={activeTab === 'biometricEmployees' ? 'active' : ''} onClick={() => setActiveTab('biometricEmployees')}><FaFingerprint /> Biometric Employees</li>
       <li className={activeTab === 'holidays' ? 'active' : ''} onClick={() => setActiveTab('holidays')}><FaCalendarAlt /> Manage Holidays</li>
-      <li className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}><FaClock /> Pending Check-ins</li>
+      {/* <li className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}><FaClock /> Pending Check-ins</li> */}
       <li className={activeTab === 'leave' ? 'active' : ''} onClick={() => setActiveTab('leave')}><FaCalendarAlt /> Leave Requests</li>
       <li className={activeTab === 'upload' ? 'active' : ''} onClick={() => setActiveTab('upload')}><FaFileUpload /> Upload Attendance</li>
       <li className={activeTab === 'add' ? 'active' : ''} onClick={() => setActiveTab('add')}><FaUserPlus /> Add Employee</li>
@@ -166,24 +166,24 @@ const AdminDashboard = () => {
   }, []);
 
 
-  const fetchPendingCheckins = useCallback(async () => {
-    setLoadingPending(true); // Start loading
-    try {
-      const res = await getPendingCheckins();
-      setPendingCheckins(res.data || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to fetch pending check-ins");
-    } finally {
-      setLoadingPending(false); // Stop loading
-    }
-  }, []);
+  // const fetchPendingCheckins = useCallback(async () => {
+  //   setLoadingPending(true); // Start loading
+  //   try {
+  //     const res = await getPendingCheckins();
+  //     setPendingCheckins(res.data || []);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Failed to fetch pending check-ins");
+  //   } finally {
+  //     setLoadingPending(false); // Stop loading
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    if (activeTab === 'pending') {
-      fetchPendingCheckins();
-    }
-  }, [activeTab, fetchPendingCheckins]);
+  // useEffect(() => {
+  //   if (activeTab === 'pending') {
+  //     fetchPendingCheckins();
+  //   }
+  // }, [activeTab, fetchPendingCheckins]);
 
 
   const [biometricLogs, setBiometricLogs] = useState([]);
@@ -229,9 +229,9 @@ const AdminDashboard = () => {
   const fetchAllData = useCallback(async () => {
     await fetchRecords();
     await fetchLeaveRequests();
-    await fetchPendingCheckins();
+    // await fetchPendingCheckins();
 
-  }, [fetchRecords, fetchLeaveRequests, fetchPendingCheckins]);
+  }, [fetchRecords, fetchLeaveRequests]);
 
   const calculateAttendance = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -258,7 +258,7 @@ const AdminDashboard = () => {
       } else {
         await approveCheckin(id, status);
       }
-      fetchPendingCheckins();
+      // fetchPendingCheckins();
       fetchRecords();
       toast.success(`Check-in ${status.toLowerCase()} successfully.`);
     } catch (err) {
@@ -640,7 +640,7 @@ const handleWeeklyReport = async () => {
       );
       toast.success(`All selected check-ins ${status.toLowerCase()}ed.`);
       setSelectedCheckins([]);
-      fetchPendingCheckins();
+      // fetchPendingCheckins();
       fetchRecords();
     } catch (err) {
       console.error("Bulk operation failed:", err);
@@ -1264,7 +1264,7 @@ const handleWeeklyReport = async () => {
           )}
 
 
-          {activeTab === 'pending' && (
+          {/* {activeTab === 'pending' && (
             <div className="admin-pending-checkins">
               <h3>Pending Check-In Approvals</h3>
 
@@ -1345,7 +1345,7 @@ const handleWeeklyReport = async () => {
                 </tbody>
               </table>
             </div>
-          )}
+          )} */}
 
 
           {activeTab === 'leave' && (

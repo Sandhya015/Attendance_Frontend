@@ -22,7 +22,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
   <aside className="admin-sidebar">
     <div className="admin-sidebar-logo">Admin</div>
     <ul>
-      <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaChartBar /> WFH Attendance History</li>
+      <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaChartBar /> Attendance History</li>
       <li className={activeTab === 'biometric' ? 'active' : ''} onClick={() => setActiveTab('biometric')}><FaFingerprint /> Biometric Logs</li>
       <li className={activeTab === 'editEmployee' ? 'active' : ''} onClick={() => setActiveTab('editEmployee')}><FaUserEdit /> Edit Employee</li>
       <li className={activeTab === 'biometricEmployees' ? 'active' : ''} onClick={() => setActiveTab('biometricEmployees')}><FaFingerprint /> Biometric Employees</li>

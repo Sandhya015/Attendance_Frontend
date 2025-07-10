@@ -40,7 +40,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
     <aside className="sidebar">
         <div className="sidebar-logo">Manager</div>
         <ul>
-            <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaClock /> WFH Attendance</li>
+            <li className={activeTab === 'attendance' ? 'active' : ''} onClick={() => setActiveTab('attendance')}><FaClock />  Attendance</li>
             <li className={activeTab === 'team' ? 'active' : ''} onClick={() => setActiveTab('team')}><FaUsers /> Team</li>
             <li className={activeTab === 'pendingCheckins' ? 'active' : ''} onClick={() => setActiveTab('pendingCheckins')}><FaClipboardCheck /> Pending Check-ins</li>
             <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}><FaUser /> Profile</li>
@@ -48,7 +48,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout }) => (
             <li className={activeTab === 'approvals' ? 'active' : ''} onClick={() => setActiveTab('approvals')}><FaRegCalendarAlt /> Leave Approvals</li>
             <li className={activeTab === 'teamLeaveHistory' ? 'active' : ''} onClick={() => setActiveTab('teamLeaveHistory')}><FaUsers /> Team Leave History</li>
             <li className={activeTab === 'holiday' ? 'active' : ''} onClick={() => setActiveTab('holiday')}><FaCalendarAlt /> Holiday Calendar</li>
-            <li className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}><FaHistory /> WFH Attendance History</li>
+            <li className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}><FaHistory /> Attendance History</li>
             <li onClick={handleLogout}><FaSignOutAlt /> Logout</li>
         </ul>
     </aside>
@@ -861,7 +861,7 @@ const HistoryTab = () => {
 
     return (
         <div className="card">
-            <h3>WFH Attendance History</h3>
+            <h3>Attendance History</h3>
             <table>
                 <thead>
                     <tr><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours worked</th><th>Status</th></tr>

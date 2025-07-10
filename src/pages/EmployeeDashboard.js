@@ -321,7 +321,7 @@ const AttendanceTab = ({ join_date }) => {
 
 
 
-const LeaveTab = () => {
+const LeaveTab = ({ setSummary }) => {
   const [leaveDate, setLeaveDate] = useState('');
   const [reason, setReason] = useState('');
   const [leaveHistory, setLeaveHistory] = useState([]);
@@ -339,25 +339,29 @@ const LeaveTab = () => {
 
   const handleLeaveSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // start spinner
+    setLoading(true);
     try {
       await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
       toast.success('Leave request submitted');
 
-      // Reset fields
       setLeaveFromDate('');
       setLeaveToDate('');
       setReason('');
 
-      // Refresh leave history
       const res = await getLeaveHistory();
       setLeaveHistory(res.data || []);
+
+      // 🔁 Refresh summary
+      const summaryRes = await getEmployeeSummary();
+      setSummary(summaryRes.data);
+
     } catch {
       toast.error('Failed to submit leave request');
     } finally {
-      setLoading(false); // stop spinner
+      setLoading(false);
     }
   };
+
 
   // Withdraw leave handler
   const handleWithdraw = async (leaveId) => {
@@ -365,9 +369,14 @@ const LeaveTab = () => {
     try {
       await withdrawLeaveRequest(leaveId);
       toast.success('Leave withdrawn successfully');
-      // Refresh leave history
+
       const res = await getLeaveHistory();
       setLeaveHistory(res.data || []);
+
+      // 🔁 Refresh summary
+      const summaryRes = await getEmployeeSummary();
+      setSummary(summaryRes.data);
+
     } catch (err) {
       toast.error('Failed to withdraw leave');
     } finally {
@@ -740,7 +749,7 @@ const EmployeeDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const leavesLeft = 20 - summary.leavesTaken;
+  // const leavesLeft = 20 - summary.leavesTaken;
 
   const nextHoliday = getNextHoliday();
 
@@ -893,7 +902,8 @@ const EmployeeDashboard = () => {
           {/* {activeTab === 'dashboard' && <DashboardTab employee={employee} />} */}
           {activeTab === 'profile' && <ProfileTab employee={employee} setEditMode={setEditMode} editMode={editMode} onSave={handleProfileSave} loading={loading} />}
           {activeTab === 'history' && <HistoryTab />}
-          {activeTab === 'leave' && <LeaveTab />}
+          {activeTab === 'leave' && <LeaveTab setSummary={setSummary} />}
+
           {activeTab === 'holiday' && <HolidayTab />}
           <ToastContainer />
         </main>

@@ -210,42 +210,42 @@ const ManagerPendingCheckinsTab = () => {
         }
     };
 
-//     useEffect(() => {
-//         fetchPendingCheckins();
-//     }, []);
+    //     useEffect(() => {
+    //         fetchPendingCheckins();
+    //     }, []);
 
-//     return (
-//         <div className="manager-checkin-tab">
-//             <h3>Pending Check-Ins</h3>
-//             <table className="pending-checkin-table">
-//                 <thead>
-//                     <tr>
-//                         <th>Email</th>
-//                         <th>Date</th>
-//                         <th>Check-in Time</th>
-//                         <th>Actions</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {pendingCheckins.length === 0 ? (
-//                         <tr><td colSpan="4" style={{ textAlign: 'center' }}>No pending check-ins</td></tr>
-//                     ) : (
-//                         pendingCheckins.map((c) => (
-//                             <tr key={c._id}>
-//                                 <td>{c.email}</td>
-//                                 <td>{c.date}</td>
-//                                 <td>{c.checkin_time}</td>
-//                                 <td>
-//                                     <button onClick={() => handleDecision(c._id, 'approve')}>✅ Approve</button>
-//                                     <button onClick={() => handleDecision(c._id, 'reject')} style={{ marginLeft: '8px', backgroundColor: 'red', color: 'white' }}>❌ Reject</button>
-//                                 </td>
-//                             </tr>
-//                         ))
-//                     )}
-//                 </tbody>
-//             </table>
-//         </div>
-//     );
+    //     return (
+    //         <div className="manager-checkin-tab">
+    //             <h3>Pending Check-Ins</h3>
+    //             <table className="pending-checkin-table">
+    //                 <thead>
+    //                     <tr>
+    //                         <th>Email</th>
+    //                         <th>Date</th>
+    //                         <th>Check-in Time</th>
+    //                         <th>Actions</th>
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+    //                     {pendingCheckins.length === 0 ? (
+    //                         <tr><td colSpan="4" style={{ textAlign: 'center' }}>No pending check-ins</td></tr>
+    //                     ) : (
+    //                         pendingCheckins.map((c) => (
+    //                             <tr key={c._id}>
+    //                                 <td>{c.email}</td>
+    //                                 <td>{c.date}</td>
+    //                                 <td>{c.checkin_time}</td>
+    //                                 <td>
+    //                                     <button onClick={() => handleDecision(c._id, 'approve')}>✅ Approve</button>
+    //                                     <button onClick={() => handleDecision(c._id, 'reject')} style={{ marginLeft: '8px', backgroundColor: 'red', color: 'white' }}>❌ Reject</button>
+    //                                 </td>
+    //                             </tr>
+    //                         ))
+    //                     )}
+    //                 </tbody>
+    //             </table>
+    //         </div>
+    //     );
 };
 
 const AttendanceTab = ({ join_date }) => {
@@ -364,7 +364,7 @@ const AttendanceTab = ({ join_date }) => {
     );
 };
 
-const LeaveTab = () => {
+const LeaveTab = ({ setSummary }) => {
     const [leaveDate, setLeaveDate] = useState('');
     const [reason, setReason] = useState('');
     const [leaveHistory, setLeaveHistory] = useState([]);
@@ -382,25 +382,29 @@ const LeaveTab = () => {
 
     const handleLeaveSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true); // start spinner
+        setLoading(true);
         try {
             await submitLeaveRequest({ from_date: leaveFromDate, to_date: leaveToDate, reason });
             toast.success('Leave request submitted');
 
-            // Reset fields
             setLeaveFromDate('');
             setLeaveToDate('');
             setReason('');
 
-            // Refresh leave history
             const res = await getLeaveHistory();
             setLeaveHistory(res.data || []);
+
+            // 🔁 Refresh summary
+            const summaryRes = await getEmployeeSummary();
+            setSummary(summaryRes.data);
+
         } catch {
             toast.error('Failed to submit leave request');
         } finally {
-            setLoading(false); // stop spinner
+            setLoading(false);
         }
     };
+
 
 
 
@@ -410,15 +414,21 @@ const LeaveTab = () => {
         try {
             await withdrawLeaveRequest(leaveId);
             toast.success('Leave withdrawn successfully');
-            // Refresh leave history
+
             const res = await getLeaveHistory();
             setLeaveHistory(res.data || []);
+
+            // 🔁 Refresh summary
+            const summaryRes = await getEmployeeSummary();
+            setSummary(summaryRes.data);
+
         } catch (err) {
             toast.error('Failed to withdraw leave');
         } finally {
             setLoading(false);
         }
     };
+
 
     const startIdx = (page - 1) * perPage;
     const pageData = leaveHistory.slice(startIdx, startIdx + perPage);
@@ -1082,7 +1092,7 @@ const ManagerDashboard = () => {
                         editMode={editMode}
                         onSave={handleProfileSave}
                     />}
-                    {activeTab === 'leave' && <LeaveTab />}
+                    {activeTab === 'leave' && <LeaveTab setSummary={setSummary} />}
                     {activeTab === 'approvals' && <ApprovalsTab token={token} />}
                     {activeTab === "teamLeaveHistory" && <TeamLeaveHistoryTab />}
                     {activeTab === 'holiday' && <HolidayTab />}

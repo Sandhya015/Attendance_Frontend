@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   getAllRecords, getAllLeaveRequests,
   updateLeaveStatus, getPendingCheckins,
-  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees, getWeeklyLowBiometricHours,withdrawLeaveRequest
+  approveCheckin, rejectCheckin, addEmployee, getBiometricLogs, getBiometricEmployees, getWeeklyLowBiometricHours, withdrawLeaveRequest
 } from '../services/api';
 import API from '../services/api';
 
@@ -305,32 +305,81 @@ const AdminDashboard = () => {
   }, [activeTab, fetchEmployees]);
 
 
+  // const handleExport = async () => {
+  //   try {
+  //     const queryParts = [];
+  //     if (filters.email.trim() !== '') queryParts.push(`email=${encodeURIComponent(filters.email.trim())}`);
+  //     if (filters.fromDate.trim() !== '') queryParts.push(`fromDate=${encodeURIComponent(filters.fromDate.trim())}`);
+  //     if (filters.toDate.trim() !== '') queryParts.push(`toDate=${encodeURIComponent(filters.toDate.trim())}`);
+  //     const query = queryParts.length ? `?${queryParts.join('&')}` : '';
+  //     const res = await fetch(`https://backend-api-corrected-1.onrender.com/admin/export${query}`, {
+  //       method: 'GET',
+  //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+  //     });
+  //     if (res.status === 404) return toast.error("No matching records found to export!");
+  //     const blob = await res.blob();
+  //     const url = window.URL.createObjectURL(blob);
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.setAttribute('download', 'attendance_export.csv');
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //     toast.success("CSV exported successfully!");
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Failed to export attendance!");
+  //   }
+  // };
+
   const handleExport = async () => {
     try {
       const queryParts = [];
-      if (filters.email.trim() !== '') queryParts.push(`email=${encodeURIComponent(filters.email.trim())}`);
-      if (filters.fromDate.trim() !== '') queryParts.push(`fromDate=${encodeURIComponent(filters.fromDate.trim())}`);
-      if (filters.toDate.trim() !== '') queryParts.push(`toDate=${encodeURIComponent(filters.toDate.trim())}`);
+      if (filters?.email?.trim()) {
+        queryParts.push(`email=${encodeURIComponent(filters.email.trim())}`);
+      }
+      if (filters?.fromDate?.trim()) {
+        queryParts.push(`fromDate=${encodeURIComponent(filters.fromDate.trim())}`);
+      }
+      if (filters?.toDate?.trim()) {
+        queryParts.push(`toDate=${encodeURIComponent(filters.toDate.trim())}`);
+      }
+
       const query = queryParts.length ? `?${queryParts.join('&')}` : '';
-      const res = await fetch(`https://backend-api-corrected-1.onrender.com/admin/export${query}`, {
+      const url = `https://backend-api-corrected-1.onrender.com/admin/export${query}`;
+      console.log("Exporting CSV from:", url);
+
+      const res = await fetch(url, {
         method: 'GET',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
       });
-      if (res.status === 404) return toast.error("No matching records found to export!");
+
+      if (res.status === 404) {
+        toast.error("No matching records found to export!");
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(`Failed: ${res.status}`);
+      }
+
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
+      link.href = downloadUrl;
       link.setAttribute('download', 'attendance_export.csv');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
       toast.success("CSV exported successfully!");
     } catch (err) {
-      console.error(err);
+      console.error("Export Error:", err);
       toast.error("Failed to export attendance!");
     }
   };
+
 
   const handleLeaveDecision = async (id, status) => {
     setLoadingLeaveId(id); // Start loading for this leave ID
@@ -583,35 +632,35 @@ const AdminDashboard = () => {
   };
 
 
-const handleWeeklyReport = async () => {
-  if (!weeklyFrom || !weeklyTo) {
-    toast.warning("Please select both From and To dates.");
-    return;
-  }
+  const handleWeeklyReport = async () => {
+    if (!weeklyFrom || !weeklyTo) {
+      toast.warning("Please select both From and To dates.");
+      return;
+    }
 
-  // Convert to YYYY-MM-DD format explicitly
-  const fromDateFormatted = new Date(weeklyFrom).toISOString().split("T")[0];
-  const toDateFormatted = new Date(weeklyTo).toISOString().split("T")[0];
+    // Convert to YYYY-MM-DD format explicitly
+    const fromDateFormatted = new Date(weeklyFrom).toISOString().split("T")[0];
+    const toDateFormatted = new Date(weeklyTo).toISOString().split("T")[0];
 
-  console.log("Sending dates:", fromDateFormatted, toDateFormatted);
+    console.log("Sending dates:", fromDateFormatted, toDateFormatted);
 
-  setLoadingLogs(true);
-  setShowWeeklyModal(false);
+    setLoadingLogs(true);
+    setShowWeeklyModal(false);
 
-  try {
-    const res = await getWeeklyLowBiometricHours({
-      from_date: fromDateFormatted,
-      to_date: toDateFormatted,
-    });
+    try {
+      const res = await getWeeklyLowBiometricHours({
+        from_date: fromDateFormatted,
+        to_date: toDateFormatted,
+      });
 
-    setBiometricLogs(res.data || []);
-    setCurrentPageBiometric(1);
-  } catch (err) {
-    toast.error("Failed to fetch weekly report");
-  } finally {
-    setLoadingLogs(false);
-  }
-};
+      setBiometricLogs(res.data || []);
+      setCurrentPageBiometric(1);
+    } catch (err) {
+      toast.error("Failed to fetch weekly report");
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
 
 
 
@@ -689,6 +738,45 @@ const handleWeeklyReport = async () => {
   };
 
 
+  const handleExportWeeklyReport = async () => {
+    if (!weeklyFrom || !weeklyTo) {
+      toast.warning("Please select both From and To dates.");
+      return;
+    }
+
+    setLoadingLogs(true);
+    try {
+      const res = await API.get("/admin/biometric/weekly-underworked-report", {
+        params: {
+          from_date: weeklyFrom,
+          to_date: weeklyTo,
+        },
+        responseType: "blob" // Needed to handle file stream
+      });
+
+      const blob = new Blob([res.data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `underworked_report_${weeklyFrom}_to_${weeklyTo}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Report exported successfully");
+    } catch (err) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const error = JSON.parse(reader.result);
+        toast.error(error?.error || "Export failed");
+      };
+      reader.readAsText(err.response.data);
+      console.error("Export error:", err);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+
   return (
     <div className="admin-dashboard-container">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
@@ -697,34 +785,45 @@ const handleWeeklyReport = async () => {
         <main className="admin-main-content">
           {activeTab === 'attendance' && (
             <>
-              <div className="admin-filter-group">
-                <input
-                  type="email"
-                  placeholder="Filter by Email"
-                  value={filters.email}
-                  onChange={(e) => setFilters({ ...filters, email: e.target.value })}
-                />
-                <input
-                  type="date"
-                  placeholder="From Date"
-                  value={filters.fromDate}
-                  onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
-                  style={{ minWidth: 120 }}
-                />
-                <input
-                  type="date"
-                  placeholder="To Date"
-                  value={filters.toDate}
-                  onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
-                  style={{ minWidth: 120 }}
-                />
-                <button onClick={fetchRecords}>Search</button>
-                <button onClick={handleExport}>Export CSV</button>
+              <div className="admin-filter-group-modern">
+                <div className="filter-item">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    placeholder="employee@example.com"
+                    value={filters.email}
+                    onChange={(e) => setFilters({ ...filters, email: e.target.value })}
+                  />
+                </div>
+                <div className="filter-item">
+                  <label>From Date</label>
+                  <input
+                    type="date"
+                    value={filters.fromDate}
+                    onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
+                  />
+                </div>
+                <div className="filter-item">
+                  <label>To Date</label>
+                  <input
+                    type="date"
+                    value={filters.toDate}
+                    onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
+                  />
+                </div>
+                <div className="button-group">
+                  <button className="btn-primary" onClick={fetchRecords}>
+                    Search
+                  </button>
+                  <button className="btn-secondary" onClick={handleExport}>
+                    Download
+                  </button>
+                  <button className="btn-clear" onClick={() => setFilters({ email: '', fromDate: '', toDate: '' })}>
+                    Clear
+                  </button>
+                </div>
               </div>
 
-              {/* <div className="admin-summary-section">
-                <SummaryCards attendanceStats={attendanceStats} leaveRequests={leaveRequests} pendingCheckins={pendingCheckins} />
-              </div> */}
 
               <div className="admin-records">
                 <h3>Attendance Records</h3>
@@ -781,40 +880,49 @@ const handleWeeklyReport = async () => {
             <div className="admin-biometric-logs">
               <h3>Biometric Logs</h3>
 
-              <div className="admin-filter-group">
-                <input
-                  type="date"
-                  value={filters.date || ''}
-                  onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                  placeholder="Filter by Date"
-                />
-                <input
-                  type="number"
-                  placeholder="Filter by Employee ID"
-                  value={filters.employeeId || ''}
-                  onChange={(e) => setFilters({ ...filters, employeeId: e.target.value })}
-                />
-                <button onClick={() => fetchBiometricLogs()} disabled={loadingLogs}>
-                  {loadingLogs ? 'Searching...' : 'Search'}
-                </button>
+              <div className="admin-filter-group-modern">
+                <div className="filter-item">
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    value={filters.date || ''}
+                    onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                  />
+                </div>
 
-                <button
-                  onClick={() => setShowWeeklyModal(true)}
-                  style={{ backgroundColor: '#3498db', color: '#fff', marginLeft: '8px' }}
-                  disabled={loadingLogs}
-                >
-                  Weekly Report
-                </button>
+                <div className="filter-item">
+                  <label>Employee ID</label>
+                  <input
+                    type="number"
+                    placeholder="Enter Employee ID"
+                    value={filters.employeeId || ''}
+                    onChange={(e) => setFilters({ ...filters, employeeId: e.target.value })}
+                  />
+                </div>
 
+                <div className="button-group">
+                  <button className="btn-primary" onClick={fetchBiometricLogs} disabled={loadingLogs}>
+                    {loadingLogs ? 'Searching...' : 'Search'}
+                  </button>
 
-                <button
-                  onClick={handleClearFilters}
-                  style={{ backgroundColor: '#ccc', marginLeft: '8px' }}
-                  disabled={loadingLogs}
-                >
-                  Clear
-                </button>
+                  <button
+                    className="weekly-btn"
+                    onClick={() => setShowWeeklyModal(true)}
+                    disabled={loadingLogs}
+                  >
+                    Weekly Report
+                  </button>
+
+                  <button
+                    className="btn-clear"
+                    onClick={handleClearFilters}
+                    disabled={loadingLogs}
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
+
 
               {loadingLogs ? (
                 <div className="overlay-loader">
@@ -863,7 +971,6 @@ const handleWeeklyReport = async () => {
                       )
                     )}
                   </tbody>
-
                   {showWeeklyModal && (
                     <div className="modal-overlay">
                       <div className="weekly-modal">
@@ -892,6 +999,16 @@ const handleWeeklyReport = async () => {
                           >
                             {loadingLogs ? "Generating..." : "Generate Report"}
                           </button>
+
+                          {/* ✅ Export Button */}
+                          <button
+                            className="btn-primary"
+                            onClick={handleExportWeeklyReport}
+                            disabled={!weeklyFrom || !weeklyTo || loadingLogs}
+                          >
+                            Download Report
+                          </button>
+
                           <button
                             className="btn-secondary"
                             onClick={() => setShowWeeklyModal(false)}
@@ -902,6 +1019,7 @@ const handleWeeklyReport = async () => {
                       </div>
                     </div>
                   )}
+
 
                 </table>
               )}
@@ -940,284 +1058,294 @@ const handleWeeklyReport = async () => {
                   onChange={(e) => setSearchEmpId(e.target.value)}
                 />
                 <button onClick={fetchBiometricEmployees}>Search</button>
+                <button
+                  onClick={() => {
+                    setSearchEmpId('');
+                    fetchBiometricEmployees(); // optional: reload full list
+                  }}
+                  style={{ backgroundColor: '#e74c3c', color: '#fff' }}
+                >
+                  Clear
+                </button>
               </div>
+
 
               {loadingBioEmployees ? (
-                <div className="overlay-loader">
-                  <div className="spinner"></div>
-                  <p>Loading biometric employees...</p>
-                </div>
-              ) : biometricEmployees.length === 0 ? (
-                <p>No biometric employee records found.</p>
-              ) : (
-                <>
-                  <table className="biometric-employee-table">
-                    <thead>
-                      <tr>
-                        <th>Employee ID</th>
-                        <th>Employee Code</th>
-                        <th>Name</th>
-                        <th>Gender</th>
-                        <th>DOJ</th>
-                        <th>Designation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bioCurrentEmployees.map(emp => (
-                        <tr key={emp.EmployeeId}>
-                          <td>{emp.EmployeeId}</td>
-                          <td>{emp.EmployeeCode}</td>
-                          <td>{emp.EmployeeName}</td>
-                          <td>{emp.Gender}</td>
-                          <td>{emp.DOJ}</td>
-                          <td>{emp.Designation || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  <div className="pagination-controls">
-                    <button
-                      onClick={() => setBioCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={bioCurrentPage === 1}
-                    >
-                      Previous
-                    </button>
-
-                    <span>Page {bioCurrentPage} of {bioTotalPages}</span>
-
-                    <button
-                      onClick={() => setBioCurrentPage(prev => Math.min(prev + 1, bioTotalPages))}
-                      disabled={bioCurrentPage === bioTotalPages}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </>
-              )}
+            <div className="overlay-loader">
+              <div className="spinner"></div>
+              <p>Loading biometric employees...</p>
             </div>
-          )}
-
-
-          {activeTab === 'holidays' && (
-            <div className="admin-manage-holidays">
-              <h3>Manage Holidays</h3>
-
-              {/* Add Holiday Form */}
-              <div className="add-holiday-form">
-                <input
-                  type="date"
-                  value={newHoliday.date}
-                  onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Holiday Name"
-                  value={newHoliday.name}
-                  onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
-                  required
-                />
-                <button onClick={handleAddHoliday}>Add Holiday</button>
-              </div>
-
-              {/* Show Loader or Table */}
-              {loadingHolidays ? (
-                <div className="overlay-loader">
-                  <div className="spinner"></div>
-                  <p>Loading holidays...</p>
-                </div>
-              ) : (
-                <table className="holiday-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Holiday</th>
-                      <th>Actions</th>
+          ) : biometricEmployees.length === 0 ? (
+            <p>No biometric employee records found.</p>
+          ) : (
+            <>
+              <table className="biometric-employee-table">
+                <thead>
+                  <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Code</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>DOJ</th>
+                    <th>Designation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bioCurrentEmployees.map(emp => (
+                    <tr key={emp.EmployeeId}>
+                      <td>{emp.EmployeeId}</td>
+                      <td>{emp.EmployeeCode}</td>
+                      <td>{emp.EmployeeName}</td>
+                      <td>{emp.Gender}</td>
+                      <td>{emp.DOJ}</td>
+                      <td>{emp.Designation || '—'}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {holidays.length === 0 ? (
-                      <tr><td colSpan="3" style={{ textAlign: 'center' }}>No holidays added yet.</td></tr>
-                    ) : (
-                      holidays.map(holiday => (
-                        <tr key={holiday._id}>
-                          <td>{holiday.date}</td>
-                          <td>{holiday.name}</td>
-                          <td>
-                            <button
-                              className="delete-holiday-btn"
-                              onClick={() => {
-                                setHolidayToDelete(holiday);
-                                setShowConfirmModal(true);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="pagination-controls">
+                <button
+                  onClick={() => setBioCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={bioCurrentPage === 1}
+                >
+                  Previous
+                </button>
+
+                <span>Page {bioCurrentPage} of {bioTotalPages}</span>
+
+                <button
+                  onClick={() => setBioCurrentPage(prev => Math.min(prev + 1, bioTotalPages))}
+                  disabled={bioCurrentPage === bioTotalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
+      </div>
           )}
 
-          {showConfirmModal && holidayToDelete && (
-            <div className="confirm-overlay">
-              <div className="confirm-modal">
-                <h4>Confirm Deletion</h4>
-                <p>Are you sure you want to delete <strong>{holidayToDelete.name}</strong>?</p>
-                <div className="confirm-actions">
-                  <button
-                    className="cancel-btn"
-                    onClick={() => {
-                      setShowConfirmModal(false);
-                      setHolidayToDelete(null);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="confirm-btn"
-                    onClick={() => {
-                      handleDeleteHoliday(holidayToDelete._id);
-                      setShowConfirmModal(false);
-                      setHolidayToDelete(null);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
+
+      {activeTab === 'holidays' && (
+        <div className="admin-manage-holidays">
+          <h3>Manage Holidays</h3>
+
+          {/* Add Holiday Form */}
+          <div className="add-holiday-form">
+            <input
+              type="date"
+              value={newHoliday.date}
+              onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Holiday Name"
+              value={newHoliday.name}
+              onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
+              required
+            />
+            <button onClick={handleAddHoliday}>Add Holiday</button>
+          </div>
+
+          {/* Show Loader or Table */}
+          {loadingHolidays ? (
+            <div className="overlay-loader">
+              <div className="spinner"></div>
+              <p>Loading holidays...</p>
+            </div>
+          ) : (
+            <table className="holiday-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Holiday</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {holidays.length === 0 ? (
+                  <tr><td colSpan="3" style={{ textAlign: 'center' }}>No holidays added yet.</td></tr>
+                ) : (
+                  holidays.map(holiday => (
+                    <tr key={holiday._id}>
+                      <td>{holiday.date}</td>
+                      <td>{holiday.name}</td>
+                      <td>
+                        <button
+                          className="delete-holiday-btn"
+                          onClick={() => {
+                            setHolidayToDelete(holiday);
+                            setShowConfirmModal(true);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {showConfirmModal && holidayToDelete && (
+        <div className="confirm-overlay">
+          <div className="confirm-modal">
+            <h4>Confirm Deletion</h4>
+            <p>Are you sure you want to delete <strong>{holidayToDelete.name}</strong>?</p>
+            <div className="confirm-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setHolidayToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="confirm-btn"
+                onClick={() => {
+                  handleDeleteHoliday(holidayToDelete._id);
+                  setShowConfirmModal(false);
+                  setHolidayToDelete(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {activeTab === 'editEmployee' && (
+        <div className="admin-edit-employee">
+          <h3>Edit Employee Details</h3>
+
+          {loadingEmployees ? (
+            <div className="overlay-loader">
+              <div className="spinner"></div>
+              <p>Loading employee data...</p>
+            </div>
+          ) : (
+            <div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Position</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees && employees.length > 0 ? (
+                    currentEmployees.map(emp => (
+                      <tr key={emp._id}>
+                        <td>{emp.name}</td>
+                        <td>{emp.email}</td>
+                        <td>{emp.department}</td>
+                        <td>{emp.position}</td>
+                        <td>
+                          <button onClick={() => openEditModal(emp)}>Edit</button>
+                          <button
+                            onClick={() => setEmployeeToDelete(emp)}
+                            style={{
+                              marginLeft: '10px',
+                              backgroundColor: 'red',
+                              color: '#fff',
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5">No employee data found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <div className="pagination-classic">
+                <button
+                  className="page-btn-classic"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                >
+                  Previous
+                </button>
+
+                <span className="page-number">{currentPage}</span>
+
+                <button
+                  className="page-btn-classic next"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                >
+                  Next
+                </button>
               </div>
             </div>
           )}
+        </div>
+      )}
 
 
-          {activeTab === 'editEmployee' && (
-            <div className="admin-edit-employee">
-              <h3>Edit Employee Details</h3>
+      {editingEmp && (
+        <div className="edit-modal-overlay">
+          <form className="edit-modal" onSubmit={(e) => { e.preventDefault(); handleEditSubmit(); }}>
+            <h2>Edit Employee</h2>
 
-              {loadingEmployees ? (
-                <div className="overlay-loader">
-                  <div className="spinner"></div>
-                  <p>Loading employee data...</p>
-                </div>
-              ) : (
-                <div>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Department</th>
-                        <th>Position</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {employees && employees.length > 0 ? (
-                        currentEmployees.map(emp => (
-                          <tr key={emp._id}>
-                            <td>{emp.name}</td>
-                            <td>{emp.email}</td>
-                            <td>{emp.department}</td>
-                            <td>{emp.position}</td>
-                            <td>
-                              <button onClick={() => openEditModal(emp)}>Edit</button>
-                              <button
-                                onClick={() => setEmployeeToDelete(emp)}
-                                style={{
-                                  marginLeft: '10px',
-                                  backgroundColor: 'red',
-                                  color: '#fff',
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="5">No employee data found.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-
-                  <div className="pagination-classic">
-                    <button
-                      className="page-btn-classic"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    >
-                      Previous
-                    </button>
-
-                    <span className="page-number">{currentPage}</span>
-
-                    <button
-                      className="page-btn-classic next"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                value={editingEmp.name}
+                onChange={e => setEditingEmp({ ...editingEmp, name: e.target.value })}
+                required
+              />
             </div>
-          )}
 
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                value={editingEmp.email}
+                onChange={e => setEditingEmp({ ...editingEmp, email: e.target.value })}
+                required
+              />
+            </div>
 
-          {editingEmp && (
-            <div className="edit-modal-overlay">
-              <form className="edit-modal" onSubmit={(e) => { e.preventDefault(); handleEditSubmit(); }}>
-                <h2>Edit Employee</h2>
+            <div className="form-group">
+              <label>Department</label>
+              <input
+                type="text"
+                value={editingEmp.department}
+                onChange={e => setEditingEmp({ ...editingEmp, department: e.target.value })}
+                required
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>Name</label>
-                  <input
-                    type="text"
-                    value={editingEmp.name}
-                    onChange={e => setEditingEmp({ ...editingEmp, name: e.target.value })}
-                    required
-                  />
-                </div>
+            <div className="form-group">
+              <label>Position</label>
+              <input
+                type="text"
+                value={editingEmp.position}
+                onChange={e => setEditingEmp({ ...editingEmp, position: e.target.value })}
+                required
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    value={editingEmp.email}
-                    onChange={e => setEditingEmp({ ...editingEmp, email: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Department</label>
-                  <input
-                    type="text"
-                    value={editingEmp.department}
-                    onChange={e => setEditingEmp({ ...editingEmp, department: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Position</label>
-                  <input
-                    type="text"
-                    value={editingEmp.position}
-                    onChange={e => setEditingEmp({ ...editingEmp, position: e.target.value })}
-                    required
-                  />
-                </div>
-
-                {/* <div className="form-group">
+            {/* <div className="form-group">
                   <label>Leaves</label>
                   <input
                     type="number"
@@ -1234,37 +1362,37 @@ const handleWeeklyReport = async () => {
                 </div> */}
 
 
-                <div className="modal-actions">
-                  <button type="button" className="cancel-btn" onClick={() => setEditingEmp(null)}>Cancel</button>
-                  <button type="submit" className="save-btn">Save</button>
-                </div>
-              </form>
+            <div className="modal-actions">
+              <button type="button" className="cancel-btn" onClick={() => setEditingEmp(null)}>Cancel</button>
+              <button type="submit" className="save-btn">Save</button>
             </div>
-          )}
+          </form>
+        </div>
+      )}
 
-          {employeeToDelete && (
-            <div className="edit-modal-overlay">
-              <div className="edit-modal">
-                <h3>Confirm Deletion</h3>
-                <p>Are you sure you want to delete <strong>{employeeToDelete.name}</strong>?</p>
-                <div className="modal-actions">
-                  <button className="cancel-btn" onClick={() => setEmployeeToDelete(null)}>Cancel</button>
-                  <button
-                    className="delete-btn"
-                    onClick={() => {
-                      handleDeleteEmployee(employeeToDelete._id);
-                      setEmployeeToDelete(null);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+      {employeeToDelete && (
+        <div className="edit-modal-overlay">
+          <div className="edit-modal">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete <strong>{employeeToDelete.name}</strong>?</p>
+            <div className="modal-actions">
+              <button className="cancel-btn" onClick={() => setEmployeeToDelete(null)}>Cancel</button>
+              <button
+                className="delete-btn"
+                onClick={() => {
+                  handleDeleteEmployee(employeeToDelete._id);
+                  setEmployeeToDelete(null);
+                }}
+              >
+                Delete
+              </button>
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
 
-          {/* {activeTab === 'pending' && (
+      {/* {activeTab === 'pending' && (
             <div className="admin-pending-checkins">
               <h3>Pending Check-In Approvals</h3>
 
@@ -1348,329 +1476,329 @@ const handleWeeklyReport = async () => {
           )} */}
 
 
-          {activeTab === 'leave' && (
-            <>
-              <div className="admin-summary-cards">
-                <div className="admin-card total">Total Requests: {leaveRequests.length}</div>
-                <div className="admin-card pending">
-                  Pending: {leaveRequests.filter(l => l.status === 'Pending').length}
-                </div>
-                <div className="admin-card accepted">
-                  Accepted: {leaveRequests.filter(l => l.status === 'Accepted').length}
-                </div>
-                <div className="admin-card rejected">
-                  Rejected: {leaveRequests.filter(l => l.status === 'Rejected').length}
-                </div>
-              </div>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>From Date</th>
-                    <th>To Date</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedLeaveRequests.map((leave, i) => (
-                    <tr key={i}>
-                      <td>{leave.email}</td>
-                      <td>{leave.from_date}</td>
-                      <td>{leave.to_date}</td>
-                      <td>{leave.reason}</td>
-                      <td>{leave.status}</td>
-                      <td>
-                        {leave.status === 'Pending' ? (
-                          <>
-                            <button
-                              className="admin-approve-btn"
-                              onClick={() => handleLeaveDecision(leave._id, 'Accepted')}
-                              disabled={loadingLeaveId === leave._id}
-                            >
-                              {loadingLeaveId === leave._id ? 'Accepting...' : 'Accept'}
-                            </button>
-                            <button
-                              className="admin-reject-btn"
-                              onClick={() => handleLeaveDecision(leave._id, 'Rejected')}
-                              disabled={loadingLeaveId === leave._id}
-                              style={{ marginLeft: '6px' }}
-                            >
-                              {loadingLeaveId === leave._id ? 'Rejecting...' : 'Reject'}
-                            </button>
-                          </>
-                        ) : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="admin-pagination">
-                <button
-                  disabled={leavePage === 1}
-                  onClick={() => setLeavePage(p => Math.max(1, p - 1))}
-                >
-                  Previous
-                </button>
-                <span>{leavePage} / {totalLeavePages}</span>
-                <button
-                  disabled={leavePage === totalLeavePages}
-                  onClick={() => setLeavePage(p => Math.min(totalLeavePages, p + 1))}
-                >
-                  Next
-                </button>
-              </div>
-
-            </>
-          )}
-
-          {activeTab === 'upload' && (
-            <div className="admin-upload-attendance">
-              <h3>Upload Attendance CSV</h3>
-
-              <div className="upload-controls">
-                <label htmlFor="attendance-upload" className="upload-label">
-                  <FaUpload style={{ marginRight: '8px' }} />
-                  Choose CSV File
-                </label>
-                <input
-                  id="attendance-upload"
-                  type="file"
-                  accept=".csv"
-                  ref={fileInputRef}
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
-                  style={{ display: 'none' }}
-                />
-                <button onClick={handleUploadAttendance} disabled={uploading}>
-                  {uploading ? 'Uploading...' : 'Upload'}
-                </button>
-
-              </div>
-
-              {selectedFile && (
-                <div className="selected-file">📄 {selectedFile.name}</div>
-              )}
+      {activeTab === 'leave' && (
+        <>
+          <div className="admin-summary-cards">
+            <div className="admin-card total">Total Requests: {leaveRequests.length}</div>
+            <div className="admin-card pending">
+              Pending: {leaveRequests.filter(l => l.status === 'Pending').length}
             </div>
-          )}
-
-
-          {activeTab === 'add' && (
-            <div className="admin-add-employee">
-              <h3>Add New Employee</h3>
-              <form onSubmit={handleEmployeeFormSubmit} autoComplete="off">
-
-                {/* Employee Code */}
-                <input
-                  type="text"
-                  placeholder="Employee Code"
-                  value={newEmployee.emp_code}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^[a-zA-Z0-9 \-]*$/.test(value)) {
-                      setNewEmployee({ ...newEmployee, emp_code: value });
-                    }
-                  }}
-                  required
-                />
-
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={newEmployee.name}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^[a-zA-Z\s]*$/.test(value)) {
-                      setNewEmployee({ ...newEmployee, name: value });
-                    }
-                  }}
-                  required
-                />
-
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={newEmployee.email}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-                  required
-                />
-
-                <label style={{ fontSize: "14px", marginBottom: "5px", display: "block", color: "#555" }}>
-                  Date of Joining
-                </label>
-                <input
-                  type="date"
-                  value={newEmployee.join_date}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, join_date: e.target.value })}
-                  required
-                />
-
-                {/* Reporting To (multi-email input) */}
-                <label>Reporting To (Press Enter after each email)</label>
-                <input
-                  type="text"
-                  placeholder="Enter email and press Enter"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const email = e.target.value.trim();
-                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      if (emailRegex.test(email) && !newEmployee.reporting_to.includes(email)) {
-                        setNewEmployee({ ...newEmployee, reporting_to: [...newEmployee.reporting_to, email] });
-                        e.target.value = '';
-                      } else {
-                        toast.warning("Enter a valid and unique email");
-                      }
-                    }
-                  }}
-                />
-                <div className="email-tags">
-                  {newEmployee.reporting_to.map((email, idx) => (
-                    <span key={idx} className="email-tag">
-                      {email}
-                      <button type="button" onClick={() => {
-                        const updated = newEmployee.reporting_to.filter(e => e !== email);
-                        setNewEmployee({ ...newEmployee, reporting_to: updated });
-                      }}>×</button>
-                    </span>
-                  ))}
-                </div>
-
-                {/* Password Field */}
-                <div style={{ position: "relative", marginBottom: "10px" }}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    value={newEmployee.password}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setNewEmployee({ ...newEmployee, password: value });
-                    }}
-                    // pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$"
-                    title="Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
-                    required
-                    style={{ width: "100%", paddingRight: "40px" }}
-                  />
-                  <span
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      cursor: "pointer",
-                      color: "#555",
-                      fontSize: "18px"
-                    }}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
-
-                {/* Confirm Password Field */}
-                <div style={{ position: "relative", marginBottom: "10px" }}>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setConfirmPassword(value);
-                      if (newEmployee.password !== value) {
-                        setPasswordError("Passwords do not match");
-                      } else {
-                        setPasswordError("");
-                      }
-                    }}
-                    required
-                    style={{ width: "100%", paddingRight: "40px" }}
-                  />
-                  <span
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      cursor: "pointer",
-                      color: "#555",
-                      fontSize: "18px"
-                    }}
-                  >
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                </div>
-
-                {/* Password Match Error */}
-                {passwordError && (
-                  <div style={{ color: "red", fontSize: "13px", marginBottom: "10px" }}>
-                    {passwordError}
-                  </div>
-                )}
-
-                <input
-                  type="text"
-                  placeholder="Department"
-                  value={newEmployee.department}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^[a-zA-Z\s]*$/.test(value)) {
-                      setNewEmployee({ ...newEmployee, department: value });
-                    }
-                  }}
-                  required
-                />
-
-                <input
-                  type="text"
-                  placeholder="Position"
-                  value={newEmployee.position}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^[a-zA-Z\s]*$/.test(value)) {
-                      setNewEmployee({ ...newEmployee, position: value });
-                    }
-                  }}
-                  required
-                />
-
-                <select
-                  value={newEmployee.bloodGroup}
-                  onChange={e => setNewEmployee({ ...newEmployee, bloodGroup: e.target.value })}
-                  required
-                  className="admin-blood-dropdown"
-                >
-                  <option value="">Select Blood Group</option>
-                  {bloodGroup.filter(bg => bg !== "").map(bg => (
-                    <option key={bg} value={bg}>{bg}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={newEmployee.role}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-                  required
-                  className="admin-role-dropdown"
-                >
-                  <option value="">Select Role</option>
-                  <option value="employee">Employee</option>
-                  <option value="manager">Manager</option>
-                </select>
-
-                <button type="submit" disabled={addingEmployee}>
-                  {addingEmployee ? 'Adding...' : 'Add Employee'}
-                </button>
-
-              </form>
+            <div className="admin-card accepted">
+              Accepted: {leaveRequests.filter(l => l.status === 'Accepted').length}
             </div>
-          )}
+            <div className="admin-card rejected">
+              Rejected: {leaveRequests.filter(l => l.status === 'Rejected').length}
+            </div>
+          </div>
 
-          <ToastContainer position="top-right" autoClose={3000} theme="colored" />
-        </main>
-      </div>
-    </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedLeaveRequests.map((leave, i) => (
+                <tr key={i}>
+                  <td>{leave.email}</td>
+                  <td>{leave.from_date}</td>
+                  <td>{leave.to_date}</td>
+                  <td>{leave.reason}</td>
+                  <td>{leave.status}</td>
+                  <td>
+                    {leave.status === 'Pending' ? (
+                      <>
+                        <button
+                          className="admin-approve-btn"
+                          onClick={() => handleLeaveDecision(leave._id, 'Accepted')}
+                          disabled={loadingLeaveId === leave._id}
+                        >
+                          {loadingLeaveId === leave._id ? 'Accepting...' : 'Accept'}
+                        </button>
+                        <button
+                          className="admin-reject-btn"
+                          onClick={() => handleLeaveDecision(leave._id, 'Rejected')}
+                          disabled={loadingLeaveId === leave._id}
+                          style={{ marginLeft: '6px' }}
+                        >
+                          {loadingLeaveId === leave._id ? 'Rejecting...' : 'Reject'}
+                        </button>
+                      </>
+                    ) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="admin-pagination">
+            <button
+              disabled={leavePage === 1}
+              onClick={() => setLeavePage(p => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <span>{leavePage} / {totalLeavePages}</span>
+            <button
+              disabled={leavePage === totalLeavePages}
+              onClick={() => setLeavePage(p => Math.min(totalLeavePages, p + 1))}
+            >
+              Next
+            </button>
+          </div>
+
+        </>
+      )}
+
+      {activeTab === 'upload' && (
+        <div className="admin-upload-attendance">
+          <h3>Upload Attendance CSV</h3>
+
+          <div className="upload-controls">
+            <label htmlFor="attendance-upload" className="upload-label">
+              <FaUpload style={{ marginRight: '8px' }} />
+              Choose CSV File
+            </label>
+            <input
+              id="attendance-upload"
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+              style={{ display: 'none' }}
+            />
+            <button onClick={handleUploadAttendance} disabled={uploading}>
+              {uploading ? 'Uploading...' : 'Upload'}
+            </button>
+
+          </div>
+
+          {selectedFile && (
+            <div className="selected-file">📄 {selectedFile.name}</div>
+          )}
+        </div>
+      )}
+
+
+      {activeTab === 'add' && (
+        <div className="admin-add-employee">
+          <h3>Add New Employee</h3>
+          <form onSubmit={handleEmployeeFormSubmit} autoComplete="off">
+
+            {/* Employee Code */}
+            <input
+              type="text"
+              placeholder="Employee Code"
+              value={newEmployee.emp_code}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[a-zA-Z0-9 \-]*$/.test(value)) {
+                  setNewEmployee({ ...newEmployee, emp_code: value });
+                }
+              }}
+              required
+            />
+
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={newEmployee.name}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[a-zA-Z\s]*$/.test(value)) {
+                  setNewEmployee({ ...newEmployee, name: value });
+                }
+              }}
+              required
+            />
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={newEmployee.email}
+              onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+              required
+            />
+
+            <label style={{ fontSize: "14px", marginBottom: "5px", display: "block", color: "#555" }}>
+              Date of Joining
+            </label>
+            <input
+              type="date"
+              value={newEmployee.join_date}
+              onChange={(e) => setNewEmployee({ ...newEmployee, join_date: e.target.value })}
+              required
+            />
+
+            {/* Reporting To (multi-email input) */}
+            <label>Reporting To (Press Enter after each email)</label>
+            <input
+              type="text"
+              placeholder="Enter email and press Enter"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const email = e.target.value.trim();
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  if (emailRegex.test(email) && !newEmployee.reporting_to.includes(email)) {
+                    setNewEmployee({ ...newEmployee, reporting_to: [...newEmployee.reporting_to, email] });
+                    e.target.value = '';
+                  } else {
+                    toast.warning("Enter a valid and unique email");
+                  }
+                }
+              }}
+            />
+            <div className="email-tags">
+              {newEmployee.reporting_to.map((email, idx) => (
+                <span key={idx} className="email-tag">
+                  {email}
+                  <button type="button" onClick={() => {
+                    const updated = newEmployee.reporting_to.filter(e => e !== email);
+                    setNewEmployee({ ...newEmployee, reporting_to: updated });
+                  }}>×</button>
+                </span>
+              ))}
+            </div>
+
+            {/* Password Field */}
+            <div style={{ position: "relative", marginBottom: "10px" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={newEmployee.password}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNewEmployee({ ...newEmployee, password: value });
+                }}
+                // pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$"
+                title="Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
+                required
+                style={{ width: "100%", paddingRight: "40px" }}
+              />
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  color: "#555",
+                  fontSize: "18px"
+                }}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+
+            {/* Confirm Password Field */}
+            <div style={{ position: "relative", marginBottom: "10px" }}>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setConfirmPassword(value);
+                  if (newEmployee.password !== value) {
+                    setPasswordError("Passwords do not match");
+                  } else {
+                    setPasswordError("");
+                  }
+                }}
+                required
+                style={{ width: "100%", paddingRight: "40px" }}
+              />
+              <span
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  color: "#555",
+                  fontSize: "18px"
+                }}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+
+            {/* Password Match Error */}
+            {passwordError && (
+              <div style={{ color: "red", fontSize: "13px", marginBottom: "10px" }}>
+                {passwordError}
+              </div>
+            )}
+
+            <input
+              type="text"
+              placeholder="Department"
+              value={newEmployee.department}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[a-zA-Z\s]*$/.test(value)) {
+                  setNewEmployee({ ...newEmployee, department: value });
+                }
+              }}
+              required
+            />
+
+            <input
+              type="text"
+              placeholder="Position"
+              value={newEmployee.position}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[a-zA-Z\s]*$/.test(value)) {
+                  setNewEmployee({ ...newEmployee, position: value });
+                }
+              }}
+              required
+            />
+
+            <select
+              value={newEmployee.bloodGroup}
+              onChange={e => setNewEmployee({ ...newEmployee, bloodGroup: e.target.value })}
+              required
+              className="admin-blood-dropdown"
+            >
+              <option value="">Select Blood Group</option>
+              {bloodGroup.filter(bg => bg !== "").map(bg => (
+                <option key={bg} value={bg}>{bg}</option>
+              ))}
+            </select>
+
+            <select
+              value={newEmployee.role}
+              onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
+              required
+              className="admin-role-dropdown"
+            >
+              <option value="">Select Role</option>
+              <option value="employee">Employee</option>
+              <option value="manager">Manager</option>
+            </select>
+
+            <button type="submit" disabled={addingEmployee}>
+              {addingEmployee ? 'Adding...' : 'Add Employee'}
+            </button>
+
+          </form>
+        </div>
+      )}
+
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    </main>
+      </div >
+    </div >
   );
 };
 
